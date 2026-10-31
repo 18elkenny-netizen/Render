@@ -28,7 +28,7 @@ module.exports = {
   config: {
     name: "welcome",
     version: "4.1",
-    author: "MR᭄﹅ MAHABUB﹅ メꪜ",
+    author: "ᏦᎬᏁᏁᎽ ᏰᏝᎪᏨᏦᏯᎾᎾᎠ",
     category: "events"
   },
 
@@ -47,17 +47,16 @@ module.exports = {
 
         // Send connected message
         const msg = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-${nickname}☔︎ 𝗖𝗢𝗡𝗡𝗘𝗖𝗧𝗘𝗗 𝗦𝗨𝗖𝗖𝗘𝗦𝗦𝗙𝗨𝗟𝗟
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-𝗕𝗢𝗧 𝗔𝗗𝗠𝗜𝗡: 𝐌𝐀𝐇𝐀𝐁𝐔𝐁 𝐑𝐀𝐇𝐌𝐀𝐍
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-𝗙𝗔𝗖𝗘𝗕𝗢𝗢𝗞: https://www.facebook.com/www.xnxx.com140
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-𝗪𝗛𝗔𝗧𝗦𝗔𝗣𝗣: wa.me/+8801613356376
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-𝗧𝗘𝗟𝗘𝗚𝗥𝗔𝗠: t.me/Mahabub_x_Rahman
-━━━━━━━━━━━━━━━━━━━━━━━━━━
+𝗧𝗁𝖺𝗇𝗄 𝗒𝗈𝗎 𝖿𝗈𝗋 𝗂𝗇𝗏𝗂𝗍𝗂𝗇𝗀 𝗆𝖾. 🖤
+
+♛ 𝗕𝗈𝗍 𝗇𝖺𝗆𝖾 : ヾΩ.Ꭰꪖꪹӄ 命༘
+♛ 𝗣𝗋𝖾𝖿𝗂𝗑 : 『 $ 』
+♛ 𝗛𝖾𝗅𝗉 𝗆𝖾𝗇𝗎 : 『 $help 』
+
+⚜️ 𝗠𝗈𝖽𝖾 : 𝖣𝖺𝗋𝗄 𝖲𝗒𝗌𝗍𝖾𝗆
+🩸 𝗦𝗍𝖺𝗍𝗎𝗌 : 𝖮𝗇𝗅𝗂𝗇𝖾
+
+༺ 𝑺𝒊𝒍𝒆𝒏𝒄𝒆 𝒊𝒔 𝒑𝒐𝒘𝒆𝒓. ༻
         `;
         await api.sendMessage(msg, threadID);
         return; // Stop further execution
