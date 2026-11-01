@@ -5,81 +5,82 @@ const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 
-let fontLoaded = false;
+let policeChargee = false;
 
-async function loadWelcomeFont() {
-  if (fontLoaded) return;
+async function chargerPoliceBienvenue() {
+  if (policeChargee) return;
 
   try {
-    const fontPath = path.join(
+    const cheminPolice = path.join(
       __dirname,
       "cache",
       "tt-modernoir-trial.bold.ttf"
     );
 
-    if (!await fs.pathExists(fontPath)) {
-      const fontUrl =
+    if (!await fs.pathExists(cheminPolice)) {
+      const adressePolice =
         "https://github.com/MR-MAHABUB-004/MAHABUB-BOT-STORAGE/raw/main/fronts/tt-modernoir-trial.bold.ttf";
 
-      const response = await axios.get(fontUrl, {
+      const reponse = await axios.get(adressePolice, {
         responseType: "arraybuffer",
         timeout: 15000
       });
 
-      await fs.outputFile(fontPath, response.data);
+      await fs.outputFile(cheminPolice, reponse.data);
     }
 
-    registerFont(fontPath, {
+    registerFont(cheminPolice, {
       family: "ModernoirBold"
     });
 
-    fontLoaded = true;
-  } catch (error) {
-    console.error("Erreur police Modernoir :", error.message);
+    policeChargee = true;
+  } catch (erreur) {
+    console.error("Erreur lors du chargement de la police :", erreur.message);
   }
 }
 
-function roundedRect(ctx, x, y, width, height, radius) {
+function dessinerRectangleArrondi(ctx, x, y, largeur, hauteur, rayon) {
   ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
+  ctx.moveTo(x + rayon, y);
+  ctx.lineTo(x + largeur - rayon, y);
+  ctx.quadraticCurveTo(x + largeur, y, x + largeur, y + rayon);
+  ctx.lineTo(x + largeur, y + hauteur - rayon);
   ctx.quadraticCurveTo(
-    x + width,
-    y + height,
-    x + width - radius,
-    y + height
+    x + largeur,
+    y + hauteur,
+    x + largeur - rayon,
+    y + hauteur
   );
-  ctx.lineTo(x + radius, y + height);
+  ctx.lineTo(x + rayon, y + hauteur);
   ctx.quadraticCurveTo(
     x,
-    y + height,
+    y + hauteur,
     x,
-    y + height - radius
+    y + hauteur - rayon
   );
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.lineTo(x, y + rayon);
+  ctx.quadraticCurveTo(x, y, x + rayon, y);
   ctx.closePath();
 }
 
-function fitText(ctx, text, maxWidth, initialSize) {
-  let size = initialSize;
+function ajusterTexte(ctx, texte, largeurMax, tailleInitiale) {
+  let taille = tailleInitiale;
 
-  while (size > 15) {
-    ctx.font = `bold ${size}px ModernoirBold, Arial`;
+  while (taille > 15) {
+    ctx.font = `bold ${taille}px ModernoirBold, Arial`;
 
-    if (ctx.measureText(text).width <= maxWidth)
+    if (ctx.measureText(texte).width <= largeurMax)
       break;
 
-    size -= 2;
+    taille -= 2;
   }
 
-  return size;
+  return taille;
 }
 
-function drawCorner(ctx, x, y, horizontal, vertical) {
+function dessinerCoin(ctx, x, y, horizontal, vertical) {
   ctx.save();
+
   ctx.strokeStyle = "#c084fc";
   ctx.lineWidth = 3;
 
@@ -101,72 +102,88 @@ function drawCorner(ctx, x, y, horizontal, vertical) {
   ctx.restore();
 }
 
-async function createWelcomeCard({
+async function creerCarteBienvenue({
   userID,
   userName,
   threadName,
   memberCount,
   usersData
 }) {
-  await loadWelcomeFont();
+  await chargerPoliceBienvenue();
 
-  const width = 900;
-  const height = 1200;
+  const largeur = 900;
+  const hauteur = 1200;
 
-  const canvas = createCanvas(width, height);
+  const canvas = createCanvas(largeur, hauteur);
   const ctx = canvas.getContext("2d");
 
-  // Fond principal
-  const gradient = ctx.createLinearGradient(0, 0, width, height);
-  gradient.addColorStop(0, "#08060d");
-  gradient.addColorStop(0.45, "#21102f");
-  gradient.addColorStop(1, "#07050b");
+  // Arrière-plan principal
+  const degrade = ctx.createLinearGradient(0, 0, largeur, hauteur);
+  degrade.addColorStop(0, "#08060d");
+  degrade.addColorStop(0.45, "#21102f");
+  degrade.addColorStop(1, "#07050b");
 
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = degrade;
+  ctx.fillRect(0, 0, largeur, hauteur);
 
   // Halo violet
-  const glow = ctx.createRadialGradient(
+  const halo = ctx.createRadialGradient(
     450, 440, 20,
     450, 440, 520
   );
 
-  glow.addColorStop(0, "rgba(147, 51, 234, 0.23)");
-  glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+  halo.addColorStop(0, "rgba(147, 51, 234, 0.23)");
+  halo.addColorStop(1, "rgba(0, 0, 0, 0)");
 
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, width, height);
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, largeur, hauteur);
 
   // Cadre extérieur
   ctx.strokeStyle = "#8b5cf6";
   ctx.lineWidth = 5;
 
-  roundedRect(ctx, 25, 25, width - 50, height - 50, 30);
+  dessinerRectangleArrondi(
+    ctx,
+    25,
+    25,
+    largeur - 50,
+    hauteur - 50,
+    30
+  );
+
   ctx.stroke();
 
   // Cadre intérieur
   ctx.strokeStyle = "rgba(216, 180, 254, 0.45)";
   ctx.lineWidth = 2;
 
-  roundedRect(ctx, 43, 43, width - 86, height - 86, 24);
+  dessinerRectangleArrondi(
+    ctx,
+    43,
+    43,
+    largeur - 86,
+    hauteur - 86,
+    24
+  );
+
   ctx.stroke();
 
   // Décoration des quatre coins
-  drawCorner(ctx, 55, 55, 1, 1);
-  drawCorner(ctx, 845, 55, -1, 1);
-  drawCorner(ctx, 55, 1145, 1, -1);
-  drawCorner(ctx, 845, 1145, -1, -1);
+  dessinerCoin(ctx, 55, 55, 1, 1);
+  dessinerCoin(ctx, 845, 55, -1, 1);
+  dessinerCoin(ctx, 55, 1145, 1, -1);
+  dessinerCoin(ctx, 845, 1145, -1, -1);
 
-  // Petites décorations
+  // Décoration supérieure
   ctx.textAlign = "center";
   ctx.fillStyle = "#c084fc";
   ctx.font = "bold 34px Arial";
   ctx.fillText("𖤐", 450, 115);
 
-  // Titre
+  // Titre principal
   ctx.fillStyle = "#e9d5ff";
   ctx.font = "bold 43px ModernoirBold, Arial";
-  ctx.fillText("NEW SOUL", 450, 185);
+  ctx.fillText("NOUVELLE ÂME", 450, 185);
 
   ctx.strokeStyle = "#8b5cf6";
   ctx.lineWidth = 2;
@@ -176,7 +193,7 @@ async function createWelcomeCard({
   ctx.lineTo(720, 215);
   ctx.stroke();
 
-  // Cadre de la photo
+  // Cadre de la photo de profil
   const avatarX = 450;
   const avatarY = 440;
   const avatarRadius = 190;
@@ -212,17 +229,17 @@ async function createWelcomeCard({
   ctx.fillStyle = "#0b0711";
   ctx.fill();
 
-  // Chargement de la photo du joueur
+  // Chargement de la photo du membre
   try {
-    let avatarUrl;
+    let adressePhoto;
 
     if (usersData && usersData.getAvatarUrl)
-      avatarUrl = await usersData.getAvatarUrl(userID);
+      adressePhoto = await usersData.getAvatarUrl(userID);
 
-    if (!avatarUrl)
+    if (!adressePhoto)
       throw new Error("Photo de profil indisponible");
 
-    const avatar = await loadImage(avatarUrl);
+    const avatar = await loadImage(adressePhoto);
 
     ctx.save();
 
@@ -234,28 +251,29 @@ async function createWelcomeCard({
       0,
       Math.PI * 2
     );
+
     ctx.clip();
 
-    const scale = Math.max(
+    const echelle = Math.max(
       (avatarRadius * 2) / avatar.width,
       (avatarRadius * 2) / avatar.height
     );
 
-    const drawWidth = avatar.width * scale;
-    const drawHeight = avatar.height * scale;
+    const largeurPhoto = avatar.width * echelle;
+    const hauteurPhoto = avatar.height * echelle;
 
     ctx.drawImage(
       avatar,
-      avatarX - drawWidth / 2,
-      avatarY - drawHeight / 2,
-      drawWidth,
-      drawHeight
+      avatarX - largeurPhoto / 2,
+      avatarY - hauteurPhoto / 2,
+      largeurPhoto,
+      hauteurPhoto
     );
 
     ctx.restore();
 
-  } catch (error) {
-    // Image de remplacement
+  } catch (erreur) {
+    // Image de remplacement si la photo est indisponible
     ctx.beginPath();
     ctx.arc(
       avatarX,
@@ -268,7 +286,7 @@ async function createWelcomeCard({
     ctx.fillStyle = "#21102f";
     ctx.fill();
 
-    const initial = String(userName || "?")
+    const initiale = String(userName || "?")
       .trim()
       .charAt(0)
       .toUpperCase();
@@ -277,30 +295,30 @@ async function createWelcomeCard({
     ctx.font = "bold 130px Arial";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(initial, avatarX, avatarY);
+    ctx.fillText(initiale, avatarX, avatarY);
 
     ctx.textBaseline = "alphabetic";
   }
 
   ctx.restore();
 
-  // Nom du joueur
+  // Nom du membre
   ctx.textAlign = "center";
 
-  const safeName = String(userName || "Nouveau membre");
-  const nameSize = fitText(ctx, safeName, 740, 48);
+  const nomSecurise = String(userName || "Nouveau membre");
+  const tailleNom = ajusterTexte(ctx, nomSecurise, 740, 48);
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = `bold ${nameSize}px ModernoirBold, Arial`;
+  ctx.font = `bold ${tailleNom}px ModernoirBold, Arial`;
 
   ctx.shadowColor = "#a855f7";
   ctx.shadowBlur = 15;
 
-  ctx.fillText(safeName, 450, 730);
+  ctx.fillText(nomSecurise, 450, 730);
 
   ctx.shadowBlur = 0;
 
-  // Petite décoration
+  // Décoration
   ctx.fillStyle = "#c084fc";
   ctx.font = "bold 28px Arial";
   ctx.fillText("𓆩 🥀 𓆪", 450, 785);
@@ -309,50 +327,53 @@ async function createWelcomeCard({
   ctx.fillStyle = "#c4b5fd";
   ctx.font = "bold 24px ModernoirBold, Arial";
 
-  ctx.fillText("WELCOME TO", 450, 855);
+  ctx.fillText("BIENVENUE DANS", 450, 855);
 
-  const safeGroup = String(threadName || "Groupe");
-  const groupSize = fitText(ctx, safeGroup, 720, 35);
+  const nomGroupe = String(threadName || "Groupe");
+  const tailleGroupe = ajusterTexte(ctx, nomGroupe, 720, 35);
 
   ctx.fillStyle = "#ffffff";
-  ctx.font = `bold ${groupSize}px ModernoirBold, Arial`;
-  ctx.fillText(safeGroup, 450, 905);
+  ctx.font = `bold ${tailleGroupe}px ModernoirBold, Arial`;
+
+  ctx.fillText(nomGroupe, 450, 905);
 
   // Numéro du membre
   ctx.strokeStyle = "rgba(192, 132, 252, 0.6)";
   ctx.lineWidth = 2;
 
-  roundedRect(ctx, 250, 960, 400, 75, 18);
+  dessinerRectangleArrondi(ctx, 250, 960, 400, 75, 18);
   ctx.stroke();
 
   ctx.fillStyle = "#e9d5ff";
   ctx.font = "bold 27px ModernoirBold, Arial";
 
   ctx.fillText(
-    `MEMBER N° ${memberCount}`,
+    `MEMBRE N° ${memberCount}`,
     450,
     1007
   );
 
-  // Signature
+  // Signature du réseau
   ctx.fillStyle = "#a78bfa";
   ctx.font = "bold 23px ModernoirBold, Arial";
+
   ctx.fillText("𖤐 DARK NETWORK 𖤐", 450, 1090);
 
   ctx.fillStyle = "#c084fc";
   ctx.font = "22px Arial";
-  ctx.fillText("WELCOME TO THE DARK SIDE", 450, 1125);
 
-  const stream = canvas.createPNGStream();
-  stream.path = `welcome_${userID}.png`;
+  ctx.fillText("BIENVENUE DANS LES TÉNÈBRES", 450, 1125);
 
-  return stream;
+  const flux = canvas.createPNGStream();
+  flux.path = `bienvenue_${userID}.png`;
+
+  return flux;
 }
 
 module.exports = {
   config: {
     name: "welcome",
-    version: "6.0",
+    version: "6.1",
     author: "Dark",
     category: "events"
   },
@@ -376,105 +397,105 @@ module.exports = {
 
       const botID = api.getCurrentUserID();
 
-      const addedParticipants =
+      const participantsAjoutes =
         logMessageData.addedParticipants || [];
 
-      if (!addedParticipants.length)
+      if (!participantsAjoutes.length)
         return;
 
       // CAS 1 : Le bot est ajouté au groupe
-      const botAdded = addedParticipants.some(
+      const botAjoute = participantsAjoutes.some(
         participant => participant.userFbId == botID
       );
 
-      if (botAdded) {
-        const nickname =
+      if (botAjoute) {
+        const surnom =
           global.GoatBot?.config?.nickNameBot || "DARK SYSTEM";
 
-        const configuredPrefix =
+        const prefixeConfigure =
           global.GoatBot?.config?.prefix || "-";
 
-        const prefix = Array.isArray(configuredPrefix)
-          ? configuredPrefix[0]
-          : configuredPrefix;
+        const prefixe = Array.isArray(prefixeConfigure)
+          ? prefixeConfigure[0]
+          : prefixeConfigure;
 
         try {
-          await api.changeNickname(nickname, threadID, botID);
-        } catch (error) {
-          console.error("Erreur changement de pseudo :", error);
+          await api.changeNickname(surnom, threadID, botID);
+        } catch (erreur) {
+          console.error("Erreur lors du changement de surnom :", erreur);
         }
 
-        const botMessage =
+        const messageBot =
 `𓆩 ⚜️ 𓆪 DARK SYSTEM
 
 Connexion établie.
 
-♛ Bot : ${nickname}
-♛ Préfixe : ${prefix}
-♛ Menu : ${prefix}help
-♛ Statut : En ligne
+♛ Assistant : ${surnom}
+♛ Préfixe : ${prefixe}
+♛ Commande du menu : ${prefixe}help
+♛ État : En ligne
 
 Le système est opérationnel. 🦇`;
 
-        await api.sendMessage(botMessage, threadID);
+        await api.sendMessage(messageBot, threadID);
         return;
       }
 
-      // CAS 2 : Nouveaux membres
-      const threadData = await threadsData.get(threadID);
-      const threadName = threadData.threadName || "Groupe";
+      // CAS 2 : De nouveaux membres rejoignent le groupe
+      const donneesGroupe = await threadsData.get(threadID);
+      const nomGroupe = donneesGroupe.threadName || "Groupe";
 
-      const threadInfo = await api.getThreadInfo(threadID);
+      const informationsGroupe = await api.getThreadInfo(threadID);
 
-      const newMembers = addedParticipants.filter(
+      const nouveauxMembres = participantsAjoutes.filter(
         participant => participant.userFbId != botID
       );
 
-      // Le nombre de membres inclut déjà les personnes ajoutées.
-      let memberCount =
-        threadInfo.participantIDs.length - newMembers.length + 1;
+      // Calcul du nombre de membres
+      let nombreMembres =
+        informationsGroupe.participantIDs.length - nouveauxMembres.length + 1;
 
-      for (const user of newMembers) {
-        const userID = user.userFbId;
+      for (const membre of nouveauxMembres) {
+        const identifiantMembre = membre.userFbId;
 
-        if (!userID)
+        if (!identifiantMembre)
           continue;
 
-        let userName = user.fullName || "Nouveau membre";
+        let nomMembre = membre.fullName || "Nouveau membre";
 
         try {
           if (usersData && usersData.getName)
-            userName = await usersData.getName(userID) || userName;
-        } catch (error) {
-          console.error("Erreur récupération du nom :", error);
+            nomMembre = await usersData.getName(identifiantMembre) || nomMembre;
+        } catch (erreur) {
+          console.error("Erreur lors de la récupération du nom :", erreur);
         }
 
         try {
-          const card = await createWelcomeCard({
-            userID,
-            userName,
-            threadName,
-            memberCount,
+          const carte = await creerCarteBienvenue({
+            userID: identifiantMembre,
+            userName: nomMembre,
+            threadName: nomGroupe,
+            memberCount: nombreMembres,
             usersData
           });
 
           await message.send({
-            attachment: card
+            attachment: carte
           });
 
-        } catch (error) {
-          console.error("Erreur création de la carte :", error);
+        } catch (erreur) {
+          console.error("Erreur lors de la création de la carte :", erreur);
 
           await message.send(
-            `𓆩 🦇 𓆪 Bienvenue ${userName} dans ${threadName} ! 🥀`
+            `𓆩 🦇 𓆪 Bienvenue ${nomMembre} dans ${nomGroupe} ! 🥀`
           );
         }
 
-        memberCount++;
+        nombreMembres++;
       }
 
-    } catch (error) {
-      console.error("Erreur dans welcome.js :", error);
+    } catch (erreur) {
+      console.error("Erreur dans le fichier welcome.js :", erreur);
     }
   }
 };
