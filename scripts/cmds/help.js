@@ -5,42 +5,44 @@ const { commands, aliases } = global.GoatBot;
 module.exports = {
   config: {
     name: "help",
-    version: "3.0.0",
+    version: "4.0.0",
     author: "Dark",
     countDown: 5,
     role: 0,
     shortDescription: {
-      en: "Afficher toutes les commandes"
+      en: "NEON SYSTEM command center"
     },
     longDescription: {
-      en: "Afficher la liste complète et les informations des commandes"
+      en: "Display all available commands and their information"
     },
     category: "info",
     guide: {
-      en: "{pn} | {pn} nomCommande"
+      en: "{pn} | {pn} commandName"
     },
     priority: 1
   },
 
   onStart: async function ({ message, args, event, role }) {
     const prefix = getPrefix(event.threadID);
-    const botName = global.GoatBot.config.nickNameBot || "DARK";
+    const botName = global.GoatBot.config.nickNameBot || "NEON SYSTEM";
+
+    const visibleCommands = [...commands.entries()]
+      .filter(([name, command]) => {
+        const config = command.config || {};
+        return (config.role ?? 0) <= role;
+      });
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    //         MENU PRINCIPAL
+    //       NEON SYSTEM MAIN MENU
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     if (args.length === 0) {
       const categories = {};
 
-      for (const [name, command] of commands) {
-        const config = command.config || {};
-        const commandRole = config.role ?? 0;
-
-        // Afficher uniquement les commandes accessibles
-        if (commandRole > role) continue;
-
-        const category = config.category || "OTHER";
+      for (const [name, command] of visibleCommands) {
+        const category = (
+          command.config?.category || "OTHER"
+        ).toUpperCase();
 
         if (!categories[category]) {
           categories[category] = [];
@@ -53,94 +55,96 @@ module.exports = {
         (a, b) => a.localeCompare(b)
       );
 
-      let msg = "";
-
-      msg += "╔════════════════════════════════╗\n";
-      msg += "       ♛  𝑫𝑨𝑹𝑲 𝑪𝑨𝑺𝑰𝑵𝑶  ♛\n";
-      msg += "╚════════════════════════════════╝\n\n";
-      msg += "       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗖𝗘𝗡𝗧𝗘𝗥 ✦\n";
-      msg += "   🖤━━━━━━━━━━━━━━━━━━━━━━💜\n";
-      msg += "   Bienvenue dans l'univers de " + botName + "\n";
-      msg += "   Voici toutes les commandes disponibles.\n";
-
       const icons = {
-        box: "🏰",
-        "box chat": "🏰",
-        economy: "💰",
-        wallet: "💎",
-        game: "🎮",
-        games: "🎮",
-        "fun & game": "🎲",
-        fun: "🎭",
-        social: "💞",
-        admin: "👑",
-        owner: "♛",
-        info: "📜",
-        information: "📜",
-        utility: "🛠️",
-        tools: "⚙️",
-        image: "🎨",
-        media: "🎬",
-        anime: "🌸",
-        chat: "💬",
-        system: "🔮",
-        music: "🎵",
-        ai: "🤖",
-        other: "✨"
+        "BOX": "▣",
+        "BOX CHAT": "▣",
+        "ECONOMY": "◈",
+        "WALLET": "◈",
+        "GAME": "⚔",
+        "GAMES": "⚔",
+        "FUN": "✧",
+        "FUN & GAME": "✧",
+        "ADMIN": "♜",
+        "OWNER": "♛",
+        "INFO": "◉",
+        "INFORMATION": "◉",
+        "UTILITY": "⌘",
+        "TOOLS": "⚙",
+        "IMAGE": "▧",
+        "MEDIA": "♫",
+        "ANIME": "✿",
+        "CHAT": "◌",
+        "SYSTEM": "⌬",
+        "MUSIC": "♫",
+        "AI": "⌘",
+        "SOCIAL": "♡",
+        "RANK": "▤",
+        "EDUCATION": "▣",
+        "DOWNLOAD": "⇩",
+        "OTHER": "✦"
       };
 
+      let msg = "";
+
+      msg += "╔══════════════════════════════╗\n";
+      msg += "       ⟦ 𝗡𝗘𝗢𝗡 𝗦𝗬𝗦𝗧𝗘𝗠 ⟧\n";
+      msg += "╚══════════════════════════════╝\n\n";
+
+      msg += "       𖤐 𝗗𝗔𝗥𝗞 𝗡𝗘𝗧𝗪𝗢𝗥𝗞 𖤐\n";
+      msg += "  ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰\n";
+      msg += `  ◈ 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 : ${botName}\n`;
+      msg += "  ◈ 𝗦𝗧𝗔𝗧𝗨𝗦 : SYSTEM ONLINE\n";
+      msg += "  ◈ 𝗔𝗖𝗖𝗘𝗦𝗦 : GRANTED\n";
+      msg += "  ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰\n";
+
       for (const category of categoryNames) {
-        const names = categories[category].sort((a, b) =>
-          a.localeCompare(b)
+        const names = categories[category].sort(
+          (a, b) => a.localeCompare(b)
         );
 
-        const icon =
-          icons[category.toLowerCase()] || "✦";
+        const icon = icons[category] || "◆";
 
         msg += "\n\n";
-        msg += `╭─────⭔『 ${icon} ${category.toUpperCase()} 』\n`;
+        msg += `╭━━〔 ${icon} 𝗡𝗘𝗢𝗡_${category.replace(/[^A-Z0-9]/g, "_")} 〕\n`;
 
         for (let i = 0; i < names.length; i += 2) {
           const first = names[i];
           const second = names[i + 1];
 
-          let line = `│✧${first}`;
+          let line = `┃ ▸ ${first}`;
 
           if (second) {
-            line += ` ✧${second}`;
+            line += `  ⟡  ${second}`;
           }
 
           msg += line + "\n";
         }
 
-        msg += "╰────────────⭓";
+        msg += "╰━━━━━━━━━━━━━━━━━━━━━━";
       }
 
-      const totalCommands = [...commands.entries()].filter(
-        ([name, command]) => {
-          const config = command.config || {};
-          return (config.role ?? 0) <= role;
-        }
-      ).length;
-
       msg += "\n\n";
-      msg += "╔════════════════════════════════╗\n";
-      msg += "       👑 𝗗𝗔𝗥𝗞 𝗖𝗔𝗦𝗜𝗡𝗢 👑\n";
-      msg += "╠════════════════════════════════╣\n";
-      msg += `│ 💎 TOTAL COMMANDES : ${totalCommands}\n`;
-      msg += `│ ⚜️ PRÉFIXE : ${prefix}\n`;
-      msg += `│ 📖 AIDE : ${prefix}help nomCommande\n`;
-      msg += `│ 🎮 EXEMPLE : ${prefix}help bal\n`;
-      msg += "╠════════════════════════════════╣\n";
-      msg += `│ 🖤 BOT : ${botName}\n`;
-      msg += "│ ✨ POWERED BY DARK SYSTEM\n";
-      msg += "╚════════════════════════════════╝";
+      msg += "╔══════════════════════════════╗\n";
+      msg += "       ⟦ 𝗦𝗬𝗦𝗧𝗘𝗠 𝗜𝗡𝗙𝗢 ⟧\n";
+      msg += "╠══════════════════════════════╣\n";
+      msg += `┃ ◈ TOTAL CMDS : ${visibleCommands.length}\n`;
+      msg += `┃ ◈ PREFIX : ${prefix}\n`;
+      msg += `┃ ◈ BOT : ${botName}\n`;
+      msg += "╠══════════════════════════════╣\n";
+      msg += `┃ ▸ HELP : ${prefix}help <commande>\n`;
+      msg += `┃ ▸ EXAMPLE : ${prefix}help work\n`;
+      msg += `┃ ▸ EXAMPLE : ${prefix}help mariage\n`;
+      msg += "╠══════════════════════════════╣\n";
+      msg += "┃ 𖤐 POWERED BY DARK SYSTEM\n";
+      msg += "┃ ⚡ CONNECTION : STABLE\n";
+      msg += "╚══════════════════════════════╝\n";
+      msg += "\n       𖤐 END OF COMMAND LIST 𖤐";
 
       return message.reply({ body: msg });
     }
 
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    //       INFORMATIONS COMMANDE
+    //       COMMAND INFORMATION
     // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     const commandName = args[0].toLowerCase();
@@ -152,60 +156,83 @@ module.exports = {
 
     if (!command) {
       return message.reply(
-        "╭─────⭔『 ❌ NOT FOUND 』\n" +
-        "│ Cette commande n'existe pas.\n" +
-        "│ Vérifie son nom et réessaie.\n" +
-        "╰────────────⭓"
+        "╔══════════════════════════════╗\n" +
+        "       ⟦ 𝗦𝗬𝗦𝗧𝗘𝗠 𝗘𝗥𝗥𝗢𝗥 ⟧\n" +
+        "╠══════════════════════════════╣\n" +
+        "┃ ✖ COMMAND NOT FOUND\n" +
+        "┃\n" +
+        "┃ Cette commande est introuvable.\n" +
+        "┃ Vérifie son nom et réessaie.\n" +
+        "╚══════════════════════════════╝"
       );
     }
 
     const config = command.config || {};
 
     if ((config.role ?? 0) > role) {
-      return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
+      return message.reply(
+        "⛔ ACCESS DENIED\n\nTu n'as pas la permission d'utiliser cette commande."
+      );
     }
 
-    const description =
-      typeof config.longDescription === "string"
-        ? config.longDescription
-        : config.longDescription?.fr ||
-          config.longDescription?.en ||
-          "Aucune description";
+    const getText = (value, fallback) => {
+      if (typeof value === "string") {
+        return value;
+      }
 
-    const guide =
-      typeof config.guide === "string"
-        ? config.guide
-        : config.guide?.fr ||
-          config.guide?.en ||
-          "Aucune utilisation disponible";
+      if (value && typeof value === "object") {
+        return value.fr || value.en || value.vi || fallback;
+      }
+
+      return fallback;
+    };
+
+    const description = getText(
+      config.longDescription || config.shortDescription,
+      "Aucune description disponible"
+    );
+
+    const guide = getText(
+      config.guide,
+      "Aucune utilisation disponible"
+    );
 
     const usage = guide
       .replace(/{pn}/g, prefix + config.name)
       .replace(/{p}/g, prefix)
       .replace(/{n}/g, config.name);
 
-    const aliasesText =
-      config.aliases?.join(", ") || "Aucun";
+    const aliasesList = config.aliases
+      ? Array.isArray(config.aliases)
+        ? config.aliases.join(", ")
+        : config.aliases
+      : "Aucun";
 
     const response =
-      "╔════════════════════════════════╗\n" +
-      "       ♛  𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢  ♛\n" +
-      "╚════════════════════════════════╝\n\n" +
-      "╭─────⭔『 💎 IDENTITÉ 』\n" +
-      `│ ✧ Nom : ${config.name}\n` +
-      `│ ✧ Alias : ${aliasesText}\n` +
-      `│ ✧ Version : ${config.version || "1.0"}\n` +
-      "╰────────────⭓\n\n" +
-      "╭─────⭔『 📜 INFORMATIONS 』\n" +
-      `│ ✧ Description : ${description}\n` +
-      `│ ✧ Auteur : ${config.author || "Inconnu"}\n` +
-      `│ ✧ Permission : ${roleTextToString(config.role ?? 0)}\n` +
-      `│ ✧ Cooldown : ${config.countDown || 1}s\n` +
-      "╰────────────⭓\n\n" +
-      "╭─────⭔『 ⚜️ UTILISATION 』\n" +
-      `│ ${usage}\n` +
-      "╰────────────⭓\n\n" +
-      "       🖤 𝗗𝗔𝗥𝗞 𝗖𝗔𝗦𝗜𝗡𝗢 🖤";
+      "╔══════════════════════════════╗\n" +
+      "       ⟦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗗𝗔𝗧𝗔 ⟧\n" +
+      "╚══════════════════════════════╝\n\n" +
+
+      "╭━━〔 ◈ 𝗜𝗗𝗘𝗡𝗧𝗜𝗧𝗬 〕\n" +
+      `┃ ▸ NAME : ${config.name}\n` +
+      `┃ ▸ ALIAS : ${aliasesList}\n` +
+      `┃ ▸ VERSION : ${config.version || "1.0"}\n` +
+      `┃ ▸ CATEGORY : ${(config.category || "OTHER").toUpperCase()}\n` +
+      "╰━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+
+      "╭━━〔 ⌬ 𝗜𝗡𝗙𝗢𝗥𝗠𝗔𝗧𝗜𝗢𝗡 〕\n" +
+      `┃ ▸ DESCRIPTION : ${description}\n` +
+      `┃ ▸ AUTHOR : ${config.author || "Unknown"}\n` +
+      `┃ ▸ PERMISSION : ${roleTextToString(config.role ?? 0)}\n` +
+      `┃ ▸ COOLDOWN : ${config.countDown || 1}s\n` +
+      "╰━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+
+      "╭━━〔 ⚡ 𝗨𝗦𝗔𝗚𝗘 〕\n" +
+      `┃ ${usage}\n` +
+      "╰━━━━━━━━━━━━━━━━━━━━━━\n\n" +
+
+      "       ⟦ 𝗡𝗘𝗢𝗡 𝗦𝗬𝗦𝗧𝗘𝗠 ⟧\n" +
+      "       𖤐 ACCESS GRANTED 𖤐";
 
     return message.reply(response);
   }
@@ -222,4 +249,4 @@ function roleTextToString(role) {
     default:
       return "Permission " + role;
   }
-  }
+}
