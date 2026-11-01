@@ -12,7 +12,7 @@
   },
   "antiInbox": false,
   "language": "fr",
-  "notesLanguage": "en",
+  "notesLanguage": "fr",
   "adminOnly": {
     "enable": false,
     "ignoreCommand": []
