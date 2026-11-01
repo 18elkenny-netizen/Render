@@ -1,121 +1,225 @@
-const fs = require("fs-extra");
-const axios = require("axios");
-const path = require("path");
+
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
-const doNotDelete = "[ ᏦᎬᏁᏁᎽ ᏰᏝᎪᏨᏦᏯᎾᎾᎠ ]"; // changing this wont change the goatbot V2 of list cmd it is just a decoyy
 
 module.exports = {
   config: {
     name: "help",
-    version: "1.17",
-    author: "Chitron Bhattacharjee", // original author Kshitiz 
+    version: "3.0.0",
+    author: "Dark",
     countDown: 5,
     role: 0,
     shortDescription: {
-      en: "View command usage and list all commands directly",
+      en: "Afficher toutes les commandes"
     },
     longDescription: {
-      en: "View command usage and list all commands directly",
+      en: "Afficher la liste complète et les informations des commandes"
     },
     category: "info",
     guide: {
-      en: "{pn} / help cmdName ",
+      en: "{pn} | {pn} nomCommande"
     },
-    priority: 1,
+    priority: 1
   },
 
-  onStart: async function ({ message, args, event, threadsData, role }) {
-    const { threadID } = event;
-    const threadData = await threadsData.get(threadID);
-    const prefix = getPrefix(threadID);
+  onStart: async function ({ message, args, event, role }) {
+    const prefix = getPrefix(event.threadID);
+    const botName = global.GoatBot.config.nickNameBot || "DARK";
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    //         MENU PRINCIPAL
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
     if (args.length === 0) {
       const categories = {};
+
+      for (const [name, command] of commands) {
+        const config = command.config || {};
+        const commandRole = config.role ?? 0;
+
+        // Afficher uniquement les commandes accessibles
+        if (commandRole > role) continue;
+
+        const category = config.category || "OTHER";
+
+        if (!categories[category]) {
+          categories[category] = [];
+        }
+
+        categories[category].push(name);
+      }
+
+      const categoryNames = Object.keys(categories).sort(
+        (a, b) => a.localeCompare(b)
+      );
+
       let msg = "";
 
-      msg += ``; // replace with your name 
+      msg += "╔════════════════════════════════╗\n";
+      msg += "       ♛  𝑫𝑨𝑹𝑲 𝑪𝑨𝑺𝑰𝑵𝑶  ♛\n";
+      msg += "╚════════════════════════════════╝\n\n";
+      msg += "       ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗖𝗘𝗡𝗧𝗘𝗥 ✦\n";
+      msg += "   🖤━━━━━━━━━━━━━━━━━━━━━━💜\n";
+      msg += "   Bienvenue dans l'univers de " + botName + "\n";
+      msg += "   Voici toutes les commandes disponibles.\n";
 
-      for (const [name, value] of commands) {
-        if (value.config.role > 1 && role < value.config.role) continue;
+      const icons = {
+        box: "🏰",
+        "box chat": "🏰",
+        economy: "💰",
+        wallet: "💎",
+        game: "🎮",
+        games: "🎮",
+        "fun & game": "🎲",
+        fun: "🎭",
+        social: "💞",
+        admin: "👑",
+        owner: "♛",
+        info: "📜",
+        information: "📜",
+        utility: "🛠️",
+        tools: "⚙️",
+        image: "🎨",
+        media: "🎬",
+        anime: "🌸",
+        chat: "💬",
+        system: "🔮",
+        music: "🎵",
+        ai: "🤖",
+        other: "✨"
+      };
 
-        const category = value.config.category || "Uncategorized";
-        categories[category] = categories[category] || { commands: [] };
-        categories[category].commands.push(name);
-      }
+      for (const category of categoryNames) {
+        const names = categories[category].sort((a, b) =>
+          a.localeCompare(b)
+        );
 
-      Object.keys(categories).forEach((category) => {
-        if (category !== "info") {
-          msg += `\n╭─────⭔『  ${category.toUpperCase()}  』`;
+        const icon =
+          icons[category.toLowerCase()] || "✦";
 
+        msg += "\n\n";
+        msg += `╭─────⭔『 ${icon} ${category.toUpperCase()} 』\n`;
 
-          const names = categories[category].commands.sort();
-          for (let i = 0; i < names.length; i += 3) {
-            const cmds = names.slice(i, i + 2).map((item) => `✧${item}`);
-            msg += `\n│${cmds.join(" ".repeat(Math.max(1, 5 - cmds.join("").length)))}`;
+        for (let i = 0; i < names.length; i += 2) {
+          const first = names[i];
+          const second = names[i + 1];
+
+          let line = `│✧${first}`;
+
+          if (second) {
+            line += ` ✧${second}`;
           }
 
-          msg += `\n╰────────────⭓`;
+          msg += line + "\n";
         }
-      });
 
-      const totalCommands = commands.size;
-      msg += `\n\n╭─────⭔[ 𝗘𝗻𝗷𝗼𝘆 🍀 ]\n│> 𝗧𝗼𝘁𝗮𝗹 𝗰𝗺𝗱𝘀: [${totalCommands}].\n│𝗧𝘆𝗽𝗲: [ ${prefix}𝗵𝗲𝗹𝗽 𝘁𝗼 \n│<𝗰𝗺𝗱> 𝘁𝗼 𝗹𝗲𝗮𝗿𝗻 𝘁𝗵𝗲 𝘂𝘀𝗮𝗴𝗲.]\n╰────────────:)`;
-      msg += ``;
-      msg += `\n╭─────⭔\n│💫 | [Hi Guys I Am ${global.GoatBot.config.nickNameBot} MY OWNER LINK m.me https://www.facebook.com/profile.php?id=61595650165092]\n╰────────────:-)`; // its not decoy so change it if you want 
-
-
-      await message.reply({
-        body: msg,
-      });
-    } else {
-      const commandName = args[0].toLowerCase();
-      const command = commands.get(commandName) || commands.get(aliases.get(commandName));
-
-      if (!command) {
-        await message.reply(`Command "${commandName}" not found.`);
-      } else {
-        const configCommand = command.config;
-        const roleText = roleTextToString(configCommand.role);
-        const author = configCommand.author || "Unknown";
-
-        const longDescription = configCommand.longDescription ? configCommand.longDescription.en || "No description" : "No description";
-
-        const guideBody = configCommand.guide?.en || "No guide available.";
-        const usage = guideBody.replace(/{p}/g, prefix).replace(/{n}/g, configCommand.name);
-
-        const response = `╭── NAME ────⭓
-  │ ${configCommand.name}
-  ├── INFO
-  │ Description: ${longDescription}
-  │ Other names: ${configCommand.aliases ? configCommand.aliases.join(", ") : "Do not have"}
-  │ Other names in your group: Do not have
-  │ Version: ${configCommand.version || "1.0"}
-  │ Role: ${roleText}
-  │ Time per command: ${configCommand.countDown || 1}s
-  │ Author: ${author}
-  ├── Usage
-  │ ${usage}
-  ├── Notes
-  │ The content inside <XXXXX> can be changed
-  │ The content inside [a|b|c] is a or b or c
-  ╰━━━━━━━❖`;
-
-        await message.reply(response);
+        msg += "╰────────────⭓";
       }
+
+      const totalCommands = [...commands.entries()].filter(
+        ([name, command]) => {
+          const config = command.config || {};
+          return (config.role ?? 0) <= role;
+        }
+      ).length;
+
+      msg += "\n\n";
+      msg += "╔════════════════════════════════╗\n";
+      msg += "       👑 𝗗𝗔𝗥𝗞 𝗖𝗔𝗦𝗜𝗡𝗢 👑\n";
+      msg += "╠════════════════════════════════╣\n";
+      msg += `│ 💎 TOTAL COMMANDES : ${totalCommands}\n`;
+      msg += `│ ⚜️ PRÉFIXE : ${prefix}\n`;
+      msg += `│ 📖 AIDE : ${prefix}help nomCommande\n`;
+      msg += `│ 🎮 EXEMPLE : ${prefix}help bal\n`;
+      msg += "╠════════════════════════════════╣\n";
+      msg += `│ 🖤 BOT : ${botName}\n`;
+      msg += "│ ✨ POWERED BY DARK SYSTEM\n";
+      msg += "╚════════════════════════════════╝";
+
+      return message.reply({ body: msg });
     }
-  },
+
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    //       INFORMATIONS COMMANDE
+    // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+    const commandName = args[0].toLowerCase();
+    const aliasName = aliases.get(commandName);
+
+    const command =
+      commands.get(commandName) ||
+      (aliasName ? commands.get(aliasName) : null);
+
+    if (!command) {
+      return message.reply(
+        "╭─────⭔『 ❌ NOT FOUND 』\n" +
+        "│ Cette commande n'existe pas.\n" +
+        "│ Vérifie son nom et réessaie.\n" +
+        "╰────────────⭓"
+      );
+    }
+
+    const config = command.config || {};
+
+    if ((config.role ?? 0) > role) {
+      return message.reply("❌ Tu n'as pas la permission d'utiliser cette commande.");
+    }
+
+    const description =
+      typeof config.longDescription === "string"
+        ? config.longDescription
+        : config.longDescription?.fr ||
+          config.longDescription?.en ||
+          "Aucune description";
+
+    const guide =
+      typeof config.guide === "string"
+        ? config.guide
+        : config.guide?.fr ||
+          config.guide?.en ||
+          "Aucune utilisation disponible";
+
+    const usage = guide
+      .replace(/{pn}/g, prefix + config.name)
+      .replace(/{p}/g, prefix)
+      .replace(/{n}/g, config.name);
+
+    const aliasesText =
+      config.aliases?.join(", ") || "Aucun";
+
+    const response =
+      "╔════════════════════════════════╗\n" +
+      "       ♛  𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢  ♛\n" +
+      "╚════════════════════════════════╝\n\n" +
+      "╭─────⭔『 💎 IDENTITÉ 』\n" +
+      `│ ✧ Nom : ${config.name}\n` +
+      `│ ✧ Alias : ${aliasesText}\n` +
+      `│ ✧ Version : ${config.version || "1.0"}\n` +
+      "╰────────────⭓\n\n" +
+      "╭─────⭔『 📜 INFORMATIONS 』\n" +
+      `│ ✧ Description : ${description}\n` +
+      `│ ✧ Auteur : ${config.author || "Inconnu"}\n` +
+      `│ ✧ Permission : ${roleTextToString(config.role ?? 0)}\n` +
+      `│ ✧ Cooldown : ${config.countDown || 1}s\n` +
+      "╰────────────⭓\n\n" +
+      "╭─────⭔『 ⚜️ UTILISATION 』\n" +
+      `│ ${usage}\n` +
+      "╰────────────⭓\n\n" +
+      "       🖤 𝗗𝗔𝗥𝗞 𝗖𝗔𝗦𝗜𝗡𝗢 🖤";
+
+    return message.reply(response);
+  }
 };
 
-function roleTextToString(roleText) {
-  switch (roleText) {
+function roleTextToString(role) {
+  switch (role) {
     case 0:
-      return "0 (All users)";
+      return "Tout le monde";
     case 1:
-      return "1 (Group administrators)";
+      return "Administrateurs du groupe";
     case 2:
-      return "2 (Admin bot)";
+      return "Administrateurs du bot";
     default:
-      return "Unknown role";
+      return "Permission " + role;
   }
-}
+  }
