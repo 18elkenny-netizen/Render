@@ -1,33 +1,36 @@
+
 const { getTime, drive } = global.utils;
 
 module.exports = {
   config: {
     name: "leave",
-    version: "1.6",
-    author: "NTKhang | styled by Mahabub",
+    version: "1.7",
+    author: "Dark",
     category: "events"
   },
 
   langs: {
-    en: {
-      session1: "🌅 ᴍᴏʀɴɪɴɢ",
-      session2: "☀️ ɴᴏᴏɴ",
-      session3: "🌇 ᴀꜰᴛᴇʀɴᴏᴏɴ",
-      session4: "🌙 ᴇᴠᴇɴɪɴɢ",
-      leaveType1: "ʟᴇꜰᴛ ᴛʜᴇ ɢʀᴏᴜᴘ",
-      leaveType2: "ᴡᴀꜱ ʀᴇᴍᴏᴠᴇᴅ ꜰʀᴏᴍ ᴛʜᴇ ɢʀᴏᴜᴘ",
+    fr: {
+      session1: "🌅 𝗠𝗔𝗧𝗜𝗡",
+      session2: "☀️ 𝗠𝗜𝗗𝗜",
+      session3: "🌇 𝗔𝗣𝗥𝗘̀𝗦-𝗠𝗜𝗗𝗜",
+      session4: "🌙 𝗦𝗢𝗜𝗥",
+
+      leaveType1: "ᴀ ǫᴜɪᴛᴛᴇ́ ʟᴇ ɢʀᴏᴜᴘᴇ",
+      leaveType2: "ᴀ ᴇ́ᴛᴇ́ ᴇxᴄʟᴜ ᴅᴜ ɢʀᴏᴜᴘᴇ",
+
       defaultLeaveMessage:
-        "👋 ʟᴇᴀᴠᴇ ᴇᴠᴇɴᴛ\n\n🧑 ᴜꜱᴇʀ: {userName}\n❌ ᴛʏᴘᴇ: {type}\n💬 ɢʀᴏᴜᴘ: {threadName}\n⏰ ᴛɪᴍᴇ: {time}\n🌏 ꜱᴇꜱꜱɪᴏɴ: {session}"
-    },
-    vi: {
-      session1: "🌅 ʙᴜᴏ̂̉ɪ ꜱᴀ́ɴɢ",
-      session2: "☀️ ʙᴜᴏ̂̉ɪ ᴛʀᴜ̛ᴀ",
-      session3: "🌇 ʙᴜᴏ̂̉ɪ ᴄʜɪᴇ̂̀ᴜ",
-      session4: "🌙 ʙᴜᴏ̂̉ɪ ᴛᴏ̂́ɪ",
-      leaveType1: "ᴛᴜ̛̣ ʀᴏ̛̀ɪ ɴʜᴏ́ᴍ",
-      leaveType2: "ʙɪ̣ ᴋɪᴄᴋ ᴋʜᴏ̉ɪ ɴʜᴏ́ᴍ",
-      defaultLeaveMessage:
-        "👋 ꜱᴜ̛̣ ᴋɪᴇ̣̂ɴ ᴛʀᴀɪɴɢ\n\n🧑 ɴɢᴜ̛ᴏ̛̀ɪ ᴅᴜ̀ɴɢ: {userName}\n❌ ʟᴏᴀ̣ɪ: {type}\n💬 ɴʜᴏ́ᴍ: {threadName}\n⏰ ᴛʜᴏ̛̀ɪ ɢɪᴀɴ: {time}\n🌏 ʙᴜᴏ̂̉ɪ: {session}"
+        "╔═══━━━─── 🥀 ───━━━═══╗\n" +
+        "       𓆩 🖤 𝗗𝗘́𝗣𝗔𝗥𝗧 𝗗𝗨 𝗚𝗥𝗢𝗨𝗣𝗘 🖤 𓆪\n" +
+        "╚═══━━━─── 🥀 ───━━━═══╝\n\n" +
+        "   👤 𝗠𝗲𝗺𝗯𝗿𝗲 : {userName}\n" +
+        "   🥀 𝗦𝘁𝗮𝘁𝘂𝘁 : {type}\n" +
+        "   🏰 𝗚𝗿𝗼𝘂𝗽𝗲 : {threadName}\n" +
+        "   ⏰ 𝗛𝗲𝘂𝗿𝗲 : {time}\n" +
+        "   🌙 𝗣𝗲́𝗿𝗶𝗼𝗱𝗲 : {session}\n\n" +
+        "╭───────〔 🦇 〕───────╮\n" +
+        "   𝗨𝗡𝗘 𝗣𝗥𝗘́𝗦𝗘𝗡𝗖𝗘 𝗗𝗘 𝗠𝗢𝗜𝗡𝗦...\n" +
+        "╰─────────────────────╯"
     }
   },
 
