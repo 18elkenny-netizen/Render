@@ -425,20 +425,26 @@ module.exports = {
           console.error("Erreur lors du changement de surnom :", erreur);
         }
 
-        const messageBot =
-`𓆩 ⚜️ 𓆪 DARK SYSTEM
+        
+const messageBot =
 
-Connexion établie.
+const messageBot =
+`𓆩 ⚜️ 𓆪 𝗗𝗔𝗥𝗞 𝗦𝗬𝗦𝗧𝗘𝗠 𓆩 ⚜️ 𓆪
 
-♛ Assistant : ${surnom}
-♛ Préfixe : ${prefixe}
-♛ Commande du menu : ${prefixe}help
-♛ État : En ligne
+╭───────「 🦇 」───────╮
+     𝗖𝗢𝗡𝗡𝗘𝗫𝗜𝗢𝗡 𝗘́𝗧𝗔𝗕𝗟𝗜𝗘
+╰────────────────────╯
 
-Le système est opérationnel. 🦇`;
+♛ 𝗔ssistant : ${surnom}
+♛ 𝗣réfixe : ${prefixe}
+♛ 𝗠enu : ${prefixe}help
+♛ 𝗘́tat : Opérationnel
 
-        await api.sendMessage(messageBot, threadID);
-        return;
+𓆩 🥀 𓆪 Le système est activé.
+Bienvenue dans les ténèbres.`;
+
+await api.sendMessage(messageBot, threadID);
+return;
       }
 
       // CAS 2 : De nouveaux membres rejoignent le groupe
