@@ -6,7 +6,7 @@ module.exports = {
         name: "info",
         aliases: ["inf", "in4"],
         version: "2.6",
-        author: "MR᭄﹅ MAHABUB﹅ メꪜ",
+        author: "ᏦᎬᏁᏁᎽ ᏰᏝᎪᏨᏦᏯᎾᎾᎠ",
         countDown: 5,
         role: 0,
         shortDescription: { en: "Sends bot and admin info." },
@@ -31,11 +31,11 @@ module.exports = {
                 message.unsend(waitMsg.messageID);
             }, 4000);
 
-            const botName = "𝑴𝑨𝑯𝑨𝑩𝑼𝑩-𝑩𝑶𝑻";
+            const botName = "ヾΩ.Ꭰꪖꪹӄ 命༘-𝑩𝑶𝑻";
             const botPrefix = `${global.GoatBot.config.prefix}`;
-            const authorName = "𝑴𝑨𝑯𝑨𝑩𝑼𝑩 𝑹𝑨𝑯𝑴𝑨𝑵";
-            const authorFB = "https://www.facebook.com/www.xnxx.com140";
-            const authorInsta = "@mahabub_rahman_404";
+            const authorName = "ᏦᎬᏁᏁᎽ ᏰᏝᎪᏨᏦᏯᎾᎾᎠ";
+            const authorFB = "https://www.facebook.com/profile.php?id=61595650165092";
+            const authorInsta = "@kenny_blackwood";
             const status = "𝑺𝑰𝑵𝑮𝑳𝑬..!";
 
             const now = moment().tz('Asia/Dhaka');
