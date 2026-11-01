@@ -7,7 +7,7 @@ module.exports = {
   config: {
     name: "mariage",
     aliases: ["marriage", "marier"],
-    version: "3.0.0",
+    version: "3.0.1",
     author: "Dark",
     countDown: 5,
     role: 0,
@@ -57,7 +57,6 @@ module.exports = {
       if (!a) return b.toUpperCase();
       if (!b) return a.toUpperCase();
 
-      // Fusion des deux noms de famille.
       const halfA = a.slice(0, Math.ceil(a.length / 2));
       const halfB = b.slice(Math.floor(b.length / 2));
 
@@ -72,6 +71,7 @@ module.exports = {
     const formatDate = value => {
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return "Date inconnue";
+
       return date.toLocaleDateString("fr-FR", {
         day: "2-digit",
         month: "long",
@@ -79,19 +79,25 @@ module.exports = {
       });
     };
 
+    // RÉCUPÉRATION DES JOUEURS AVEC LEURS VÉRITABLES IDENTIFIANTS
     const getAllUsers = async () => {
       const all = await usersData.getAll();
-      if (Array.isArray(all)) {
-        return all.map((user, index) => ({
-          id: String(user.userID || user.id || index),
-          user
-        }));
+
+      if (!Array.isArray(all)) {
+        return [];
       }
 
-      return Object.entries(all || {}).map(([id, user]) => ({
-        id: String(user.userID || user.id || id),
-        user
-      }));
+      return all
+        .filter(user =>
+          user &&
+          user.userID !== undefined &&
+          user.userID !== null &&
+          String(user.userID).trim() !== ""
+        )
+        .map(user => ({
+          id: String(user.userID),
+          user
+        }));
     };
 
     const sendText = body => message.send(body);
@@ -115,14 +121,16 @@ module.exports = {
       ctx.beginPath();
       ctx.moveTo(x + r, y);
       ctx.arcTo(x + w, y, x + w, y + h, r);
-      ctx.arcTo(x + w, y + h, x, y + h, r);
-      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y + h, x, y + h, r);
+      ctx.arcTo(x, y, x, y + h, r);
       ctx.arcTo(x, y, x + w, y, r);
       ctx.closePath();
+
       if (fill) {
         ctx.fillStyle = fill;
         ctx.fill();
       }
+
       if (stroke) {
         ctx.strokeStyle = stroke;
         ctx.lineWidth = 3;
@@ -135,18 +143,21 @@ module.exports = {
       bg.addColorStop(0, "#08080c");
       bg.addColorStop(0.5, "#17131d");
       bg.addColorStop(1, "#050507");
+
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, width, height);
 
       for (let i = 0; i < 100; i++) {
         const x = (i * 137) % width;
         const y = (i * 223) % height;
+
         ctx.beginPath();
         ctx.arc(x, y, (i % 3) + 1, 0, Math.PI * 2);
         ctx.fillStyle = i % 2 ? "#e8c36c" : "#a88cff";
         ctx.globalAlpha = 0.35 + (i % 4) * 0.12;
         ctx.fill();
       }
+
       ctx.globalAlpha = 1;
 
       roundedRect(ctx, 24, 24, width - 48, height - 48, 28, null, "#9c7735");
@@ -167,7 +178,7 @@ module.exports = {
       ctx.shadowBlur = 0;
     };
 
-    const getAvatar = async (id) => {
+    const getAvatar = async id => {
       try {
         if (!api.getUserInfo) return null;
 
@@ -186,6 +197,7 @@ module.exports = {
         );
 
         if (!url) return null;
+
         return await loadImage(url);
       } catch {
         return null;
@@ -200,17 +212,34 @@ module.exports = {
       ctx.clip();
 
       const avatar = await getAvatar(id);
+
       if (avatar) {
-        ctx.drawImage(avatar, x - size / 2, y - size / 2, size, size);
+        ctx.drawImage(
+          avatar,
+          x - size / 2,
+          y - size / 2,
+          size,
+          size
+        );
       } else {
         const gradient = ctx.createLinearGradient(
-          x - size / 2, y - size / 2,
-          x + size / 2, y + size / 2
+          x - size / 2,
+          y - size / 2,
+          x + size / 2,
+          y + size / 2
         );
+
         gradient.addColorStop(0, "#f4c96b");
         gradient.addColorStop(1, "#9b4d9c");
+
         ctx.fillStyle = gradient;
-        ctx.fillRect(x - size / 2, y - size / 2, size, size);
+        ctx.fillRect(
+          x - size / 2,
+          y - size / 2,
+          size,
+          size
+        );
+
         ctx.fillStyle = "#ffffff";
         ctx.font = `bold ${size / 2}px Arial`;
         ctx.textAlign = "center";
@@ -219,6 +248,7 @@ module.exports = {
       }
 
       ctx.restore();
+
       ctx.beginPath();
       ctx.arc(x, y, size / 2, 0, Math.PI * 2);
       ctx.strokeStyle = "#e9bd62";
@@ -228,6 +258,7 @@ module.exports = {
 
     const sendPoster = async (canvas, filename, caption) => {
       const filePath = path.join(cacheDir, filename);
+
       await fs.writeFile(filePath, canvas.toBuffer("image/png"));
 
       await new Promise((resolve, reject) => {
@@ -266,6 +297,7 @@ module.exports = {
       drawCentered(ctx, name2.toUpperCase(), 820, 34, "#ffffff");
 
       roundedRect(ctx, 100, 900, 880, 190, 25, "#15121b", "#bd9650");
+
       drawCentered(ctx, "NOM DE FAMILLE", 965, 27, "#d6b56b");
       drawCentered(ctx, familyName, 1035, 65, "#f7d889");
 
@@ -298,12 +330,14 @@ module.exports = {
       drawCentered(ctx, toName.toUpperCase(), 910, 36, "#ffffff");
 
       roundedRect(ctx, 100, 1020, 880, 140, 25, "#15121b", "#795c68");
+
       drawCentered(ctx, "Le destin en a décidé autrement.", 1105, 31, "#e5c9d8");
       drawCentered(ctx, "✦ UNE AUTRE HISTOIRE ATTEND ✦", 1240, 26, "#d7b66e");
 
       return canvas;
     };
 
+    // CLASSEMENT MONDIAL
     const makeLeaderboard = async () => {
       const all = await getAllUsers();
       const couples = [];
@@ -317,9 +351,15 @@ module.exports = {
         if (!spouseID || id >= spouseID) continue;
 
         const partner = await getData(spouseID);
+
         if (String(partner.data.spouse || "") !== id) continue;
 
-        const since = Number(data.marriageSince || partner.data.marriageSince || 0);
+        const since = Number(
+          data.marriageSince ||
+          partner.data.marriageSince ||
+          0
+        );
+
         const familyName =
           data.marriageFamilyName ||
           partner.data.marriageFamilyName ||
@@ -342,7 +382,15 @@ module.exports = {
         });
       }
 
-      couples.sort((a, b) => a.since - b.since);
+      // TRI PAR FORTUNE : DU PLUS RICHE AU MOINS RICHE.
+      // En cas d'égalité, le mariage le plus ancien passe devant.
+      couples.sort((a, b) => {
+        if (b.wallet !== a.wallet) {
+          return b.wallet - a.wallet;
+        }
+
+        return a.since - b.since;
+      });
 
       const width = 1080;
       const height = 1600;
@@ -363,6 +411,7 @@ module.exports = {
       ctx.font = "bold 22px Arial";
       ctx.fillStyle = "#d8bd7a";
       ctx.textAlign = "left";
+
       ctx.fillText("RANG", 110, 400);
       ctx.fillText("COUPLE", 220, 400);
       ctx.fillText("UNION", 700, 400);
@@ -375,7 +424,12 @@ module.exports = {
       for (let i = 0; i < Math.min(couples.length, 10); i++) {
         const couple = couples[i];
         const y = 510 + i * 95;
-        const rankColor = i === 0 ? "#ffd45e" : i === 1 ? "#c8d1dc" : i === 2 ? "#d99a5d" : "#aaa6b2";
+
+        const rankColor =
+          i === 0 ? "#ffd45e" :
+          i === 1 ? "#c8d1dc" :
+          i === 2 ? "#d99a5d" :
+          "#aaa6b2";
 
         if (i % 2 === 0) {
           roundedRect(ctx, 90, y - 48, 900, 82, 12, "#18181e", null);
@@ -391,9 +445,11 @@ module.exports = {
 
         ctx.fillStyle = "#ffffff";
         ctx.font = "bold 20px Arial";
+
         ctx.fillText(
           `${couple.name1} ♡ ${couple.name2}`.slice(0, 35),
-          340, y - 3
+          340,
+          y - 3
         );
 
         ctx.fillStyle = "#e4bd68";
@@ -402,9 +458,11 @@ module.exports = {
 
         ctx.fillStyle = "#c6bdcf";
         ctx.font = "17px Arial";
+
         ctx.fillText(
           couple.since ? formatDate(couple.since) : "Date inconnue",
-          700, y + 8
+          700,
+          y + 8
         );
 
         ctx.fillStyle = "#f2d17d";
@@ -418,7 +476,14 @@ module.exports = {
         ctx.stroke();
       }
 
-      drawCentered(ctx, "✦ DEUX CŒURS • UN NOM • UNE FORTUNE ✦", 1530, 25, "#e6c36e");
+      drawCentered(
+        ctx,
+        "✦ DEUX CŒURS • UN NOM • UNE FORTUNE ✦",
+        1530,
+        25,
+        "#e6c36e"
+      );
+
       return canvas;
     };
 
@@ -428,6 +493,7 @@ module.exports = {
 
       for (const targetID of outgoing) {
         const target = await getData(targetID);
+
         if (
           target.data.marriageProposal &&
           String(target.data.marriageProposal.from) === String(senderID)
@@ -453,25 +519,43 @@ module.exports = {
       "✦ Les mariages sont mondiaux et restent identiques dans tous les groupes."
     );
 
-    // PROFIL / CLASSEMENT
+    // CLASSEMENT
     if (sub === "top") {
       const poster = await makeLeaderboard();
-      return sendPoster(poster, `marriage_top_${Date.now()}.png`, "🏆 𝗖𝗟𝗔𝗦𝗦𝗘𝗠𝗘𝗡𝗧 𝗠𝗢𝗡𝗗𝗜𝗔𝗟 𝗗𝗘𝗦 𝗖𝗢𝗨𝗣𝗟𝗘𝗦");
+
+      return sendPoster(
+        poster,
+        `marriage_top_${Date.now()}.png`,
+        "🏆 𝗖𝗟𝗔𝗦𝗦𝗘𝗠𝗘𝗡𝗧 𝗠𝗢𝗡𝗗𝗜𝗔𝗟 𝗗𝗘𝗦 𝗖𝗢𝗨𝗣𝗟𝗘𝗦"
+      );
     }
 
-    if (!sub && !event.mentions || (!sub && Object.keys(event.mentions || {}).length === 0)) {
+    // PROFIL
+    if (
+      !sub &&
+      (!event.mentions || Object.keys(event.mentions).length === 0)
+    ) {
       const user = await getData(uid);
       const spouseID = user.data.spouse;
 
       if (!spouseID) {
         if (user.data.marriageProposal) {
           const from = await getName(user.data.marriageProposal.from);
-          return sendText(`💌 Tu as une demande en mariage de ${from} !\n\nUtilise $mariage accept ou $mariage refuse.`);
+
+          return sendText(
+            `💌 Tu as une demande en mariage de ${from} !\n\n` +
+            `Utilise $mariage accept ou $mariage refuse.`
+          );
         }
-        return sendText("💔 Tu n'es pas encore marié(e).\nUtilise $mariage @mention pour faire une demande.");
+
+        return sendText(
+          "💔 Tu n'es pas encore marié(e).\n" +
+          "Utilise $mariage @mention pour faire une demande."
+        );
       }
 
       const partner = await getData(spouseID);
+
       const familyName =
         user.data.marriageFamilyName ||
         partner.data.marriageFamilyName ||
@@ -497,8 +581,13 @@ module.exports = {
       const user = await getData(uid);
       const proposal = user.data.marriageProposal;
 
-      if (!proposal) return sendText("💌 Tu n'as aucune demande en attente.");
-      if (user.data.spouse) return sendText("💍 Tu es déjà marié(e).");
+      if (!proposal) {
+        return sendText("💌 Tu n'as aucune demande en attente.");
+      }
+
+      if (user.data.spouse) {
+        return sendText("💍 Tu es déjà marié(e).");
+      }
 
       const partnerID = String(proposal.from);
       const partner = await getData(partnerID);
@@ -506,7 +595,10 @@ module.exports = {
       if (partner.data.spouse) {
         delete user.data.marriageProposal;
         await saveUser(uid, user);
-        return sendText("💔 Cette personne est déjà mariée. La demande est devenue invalide.");
+
+        return sendText(
+          "💔 Cette personne est déjà mariée. La demande est devenue invalide."
+        );
       }
 
       const date = Date.now();
@@ -534,8 +626,18 @@ module.exports = {
       await cancelOutgoing(uid);
       await cancelOutgoing(partnerID);
 
-      const poster = await makeMarriagePoster(uid, partnerID, familyName, date);
-      return sendPoster(poster, `marriage_accept_${Date.now()}.png`, "💍 𝗠𝗔𝗥𝗜𝗔𝗚𝗘 𝗖𝗘́𝗟𝗘́𝗕𝗥𝗘́ !");
+      const poster = await makeMarriagePoster(
+        uid,
+        partnerID,
+        familyName,
+        date
+      );
+
+      return sendPoster(
+        poster,
+        `marriage_accept_${Date.now()}.png`,
+        "💍 𝗠𝗔𝗥𝗜𝗔𝗚𝗘 𝗖𝗘́𝗟𝗘́𝗕𝗥𝗘́ !"
+      );
     }
 
     // REFUS
@@ -543,12 +645,15 @@ module.exports = {
       const user = await getData(uid);
       const proposal = user.data.marriageProposal;
 
-      if (!proposal) return sendText("💌 Tu n'as aucune demande à refuser.");
+      if (!proposal) {
+        return sendText("💌 Tu n'as aucune demande à refuser.");
+      }
 
       const partnerID = String(proposal.from);
       const partner = await getData(partnerID);
 
       delete user.data.marriageProposal;
+
       partner.data.marriageInvitations =
         (partner.data.marriageInvitations || [])
           .filter(id => String(id) !== uid);
@@ -557,49 +662,93 @@ module.exports = {
       await saveUser(partnerID, partner);
 
       const poster = await makeRefusalPoster(partnerID, uid);
-      return sendPoster(poster, `marriage_refuse_${Date.now()}.png`, "💔 𝗗𝗘𝗠𝗔𝗡𝗗𝗘 𝗥𝗘𝗙𝗨𝗦𝗘́𝗘");
+
+      return sendPoster(
+        poster,
+        `marriage_refuse_${Date.now()}.png`,
+        
+    // DEMANDE REFUSER
+    if (sub === "refuse") {
+      const user = await getData(uid);
+      const proposal = user.data.marriageProposal;
+
+      if (!proposal) {
+        return sendText("💌 Tu n'as aucune demande en mariage en attente.");
+      }
+
+      const senderID = String(proposal.from);
+      const sender = await getData(senderID);
+
+      delete user.data.marriageProposal;
+
+      sender.data.marriageInvitations = (
+        sender.data.marriageInvitations || []
+      ).filter(id => String(id) !== uid);
+
+      await saveUser(uid, user);
+      await saveUser(senderID, sender);
+
+      return sendText(
+        `🥀 ━━━ 𝗗𝗘𝗠𝗔𝗡𝗗𝗘 𝗥𝗘𝗙𝗨𝗦𝗘́𝗘 ━━━ 🥀\n\n` +
+        `💔 Tu as refusé la demande de ${sender.name}.\n` +
+        `🕊️ Chacun reprend son chemin...`
+      );
     }
 
     // DESTIN
     if (sub === "destin") {
       const user = await getData(uid);
-      if (user.data.spouse) return sendText("💍 Tu es déjà marié(e).");
 
-      const all = await getAllUsers();
+      if (user.data.spouse) {
+        return sendText("💍 Tu es déjà marié(e).");
+      }
+
+      const allUsers = await getAllUsers();
+
       const candidates = [];
 
-      for (const entry of all) {
-        if (entry.id === uid) continue;
-        const candidate = await getData(entry.id);
+      for (const item of allUsers) {
+        const id = String(item.id);
+
+        if (id === uid) continue;
+
+        const candidate = await getData(id);
 
         if (
           !candidate.data.spouse &&
-          !candidate.data.marriageProposal &&
-          candidate.name
+          !candidate.data.marriageProposal
         ) {
-          candidates.push(entry.id);
+          candidates.push({
+            id,
+            name: candidate.name || "Inconnu"
+          });
         }
       }
 
-      if (!candidates.length) {
-        return sendText("🎲 Le destin n'a trouvé personne de libre pour toi.");
+      if (candidates.length === 0) {
+        return sendText("🥀 Aucun partenaire disponible pour le moment.");
       }
 
-      const targetID = candidates[Math.floor(Math.random() * candidates.length)];
-      const target = await getData(targetID);
+      const target = candidates[
+        Math.floor(Math.random() * candidates.length)
+      ];
 
-      target.data.marriageProposal = {
+      const targetID = String(target.id);
+
+      user.data.marriageInvitations =
+        user.data.marriageInvitations || [];
+
+      const targetData = await getData(targetID);
+
+      targetData.data.marriageProposal = {
         from: uid,
         threadID,
         date: Date.now()
       };
 
-      user.data.marriageInvitations = [
-        ...(user.data.marriageInvitations || []),
-        targetID
-      ];
+      user.data.marriageInvitations.push(targetID);
 
-      await saveUser(targetID, target);
+      await saveUser(targetID, targetData);
       await saveUser(uid, user);
 
       return sendText(
@@ -613,7 +762,10 @@ module.exports = {
     // DIVORCE
     if (sub === "divorce") {
       const user = await getData(uid);
-      if (!user.data.spouse) return sendText("🥀 Tu n'es pas marié(e).");
+
+      if (!user.data.spouse) {
+        return sendText("🥀 Tu n'es pas marié(e).");
+      }
 
       const partnerID = String(user.data.spouse);
       const partner = await getData(partnerID);
@@ -629,9 +781,9 @@ module.exports = {
       user.money = half;
       partner.money = wallet - half;
 
-      
       delete user.data.spouse;
       delete partner.data.spouse;
+
       delete user.data.marriageSince;
       delete partner.data.marriageSince;
 
@@ -665,11 +817,21 @@ module.exports = {
       const user = await getData(uid);
       const target = await getData(targetID);
 
-      if (user.data.spouse) return sendText("💍 Tu es déjà marié(e).");
-      if (target.data.spouse) return sendText("💔 Cette personne est déjà mariée.");
-      if (target.data.marriageProposal) return sendText("💌 Cette personne a déjà une demande en attente.");
+      if (user.data.spouse) {
+        return sendText("💍 Tu es déjà marié(e).");
+      }
 
-      user.data.marriageInvitations = user.data.marriageInvitations || [];
+      if (target.data.spouse) {
+        return sendText("💔 Cette personne est déjà mariée.");
+      }
+
+      if (target.data.marriageProposal) {
+        return sendText("💌 Cette personne a déjà une demande en attente.");
+      }
+
+      user.data.marriageInvitations =
+        user.data.marriageInvitations || [];
+
       target.data.marriageProposal = {
         from: uid,
         threadID,
@@ -693,3 +855,4 @@ module.exports = {
     return help();
   }
 };
+        
