@@ -1,288 +1,305 @@
+
 const { getPrefix } = global.utils;
 const { commands, aliases } = global.GoatBot;
 
 module.exports = {
-  config: {
-    name: "help",
-    version: "5.0.0",
-    author: "Dark",
-    countDown: 3,
-    role: 0,
+	config: {
+		name: "help",
+		version: "5.1.0",
+		author: "Dark",
+		countDown: 3,
+		role: 0,
 
-    shortDescription: {
-      fr: "Menu des commandes DARK SYSTEM"
-    },
+		shortDescription: {
+			fr: "Menu des commandes DARK SYSTEM"
+		},
 
-    longDescription: {
-      fr: "Afficher toutes les commandes disponibles"
-    },
+		longDescription: {
+			fr: "Afficher toutes les commandes disponibles"
+		},
 
-    category: "menu",
+		category: "menu",
 
-    guide: {
-      fr: "{pn} | {pn} nomCommande"
-    },
+		guide: {
+			fr: "{pn} | {pn} nomCommande"
+		},
 
-    priority: 1
-  },
+		priority: 1
+	},
 
-  onStart: async function ({ message, args, event, role }) {
-    const prefix = getPrefix(event.threadID);
-    const botName = global.GoatBot.config.nickNameBot || "DARK SYSTEM";
+	onStart: async function ({ message, args, event, role }) {
+		const prefix = getPrefix(event.threadID);
 
-    // FILTRAGE DES COMMANDES SELON LES PERMISSIONS
-    const visibleCommands = [...commands.entries()]
-      .filter(([name, command]) => {
-        const config = command.config || {};
-        return (config.role ?? 0) <= role;
-      });
+		// COMMANDES SPÉCIALEMENT CLASSÉES
+		const customCategories = {
+			compat: "GAMES",
+			voyance: "GAMES",
+			deviner: "GAMES",
 
-    // TRADUCTION DES CATÉGORIES
-    const categoryTranslations = {
-      ADMIN: "ADMINISTRATION",
-      ADMINISTRATION: "ADMINISTRATION",
-      OWNER: "PROPRIÉTAIRE",
+			annonce: "ADMINISTRATION",
+			wanted: "ADMINISTRATION"
+		};
 
-      ANIME: "UNIVERS ANIME",
-      ANIMES: "UNIVERS ANIME",
+		// TRADUCTION DES CATÉGORIES
+		const categoryTranslations = {
+			ADMIN: "ADMINISTRATION",
+			ADMINISTRATION: "ADMINISTRATION",
+			OWNER: "PROPRIÉTAIRE",
 
-      GAME: "JEUX",
-      GAMES: "JEUX",
-      FUN: "DIVERTISSEMENT",
-      ENTERTAINMENT: "DIVERTISSEMENT",
+			ANIME: "UNIVERS ANIME",
+			ANIMES: "UNIVERS ANIME",
 
-      INFO: "INFORMATIONS",
-      INFORMATION: "INFORMATIONS",
-      GENERAL: "GÉNÉRAL",
+			GAME: "JEUX",
+			GAMES: "JEUX",
+			JEUX: "JEUX",
+			FUN: "DIVERTISSEMENT",
+			ENTERTAINMENT: "DIVERTISSEMENT",
 
-      GROUP: "ESPACE GROUPE",
-      GROUPE: "ESPACE GROUPE",
-      CHAT: "ESPACE GROUPE",
+			INFO: "INFORMATIONS",
+			INFORMATION: "INFORMATIONS",
+			GENERAL: "GÉNÉRAL",
 
-      AI: "INTELLIGENCE ARTIFICIELLE",
-      IA: "INTELLIGENCE ARTIFICIELLE",
+			GROUP: "ESPACE GROUPE",
+			GROUPE: "ESPACE GROUPE",
+			CHAT: "ESPACE GROUPE",
 
-      IMAGE: "MÉDIAS",
-      MEDIA: "MÉDIAS",
-      MEDIAS: "MÉDIAS",
-      MUSIC: "MÉDIAS",
+			AI: "INTELLIGENCE ARTIFICIELLE",
+			IA: "INTELLIGENCE ARTIFICIELLE",
 
-      MENU: "COMMANDES",
-      TOOLS: "OUTILS",
-      TOOL: "OUTILS",
-      UTILITY: "OUTILS",
-      UTILITIES: "OUTILS",
+			IMAGE: "MÉDIAS",
+			MEDIA: "MÉDIAS",
+			MEDIAS: "MÉDIAS",
+			MUSIC: "MÉDIAS",
 
-      ECONOMY: "ÉCONOMIE",
-      WALLET: "ÉCONOMIE",
+			MENU: "COMMANDES",
+			TOOLS: "OUTILS",
+			TOOL: "OUTILS",
+			UTILITY: "OUTILS",
+			UTILITIES: "OUTILS",
 
-      DOWNLOAD: "TÉLÉCHARGEMENT",
-      EDUCATION: "ÉDUCATION",
-      SOCIAL: "SOCIAL",
-      OTHER: "AUTRES"
-    };
+			ECONOMY: "ÉCONOMIE",
+			WALLET: "ÉCONOMIE",
 
-    // ICÔNES DES CATÉGORIES
-    const categoryIcons = {
-      ADMIN: "♛",
-      ADMINISTRATION: "♛",
-      OWNER: "♛",
+			DOWNLOAD: "TÉLÉCHARGEMENT",
+			EDUCATION: "ÉDUCATION",
+			SOCIAL: "SOCIAL",
+			OTHER: "AUTRES"
+		};
 
-      ANIME: "⛩️",
-      ANIMES: "⛩️",
+		// ICÔNES DES CATÉGORIES
+		const categoryIcons = {
+			ADMIN: "♛",
+			ADMINISTRATION: "♛",
+			OWNER: "♛",
 
-      GAME: "🎮",
-      GAMES: "🎮",
-      FUN: "🎮",
-      ENTERTAINMENT: "🎮",
+			ANIME: "⛩️",
+			ANIMES: "⛩️",
 
-      INFO: "✧",
-      INFORMATION: "✧",
-      GENERAL: "✧",
+			GAME: "🎮",
+			GAMES: "🎮",
+			JEUX: "🎮",
+			FUN: "🎮",
+			ENTERTAINMENT: "🎮",
 
-      GROUP: "♟️",
-      GROUPE: "♟️",
-      CHAT: "♟️",
+			INFO: "✧",
+			INFORMATION: "✧",
+			GENERAL: "✧",
 
-      AI: "☽",
-      IA: "☽",
+			GROUP: "♟️",
+			GROUPE: "♟️",
+			CHAT: "♟️",
 
-      IMAGE: "▧",
-      MEDIA: "▧",
-      MEDIAS: "▧",
-      MUSIC: "▧",
+			AI: "☽",
+			IA: "☽",
 
-      MENU: "⌘",
-      TOOLS: "⚙️",
-      TOOL: "⚙️",
-      UTILITY: "⚙️",
-      UTILITIES: "⚙️",
+			IMAGE: "▧",
+			MEDIA: "▧",
+			MEDIAS: "▧",
+			MUSIC: "▧",
 
-      ECONOMY: "◈",
-      WALLET: "◈",
+			MENU: "⌘",
+			TOOLS: "⚙️",
+			TOOL: "⚙️",
+			UTILITY: "⚙️",
+			UTILITIES: "⚙️",
 
-      DOWNLOAD: "⇩",
-      EDUCATION: "📚",
-      SOCIAL: "♡",
-      OTHER: "✦"
-    };
+			ECONOMY: "◈",
+			WALLET: "◈",
 
-    // RÉCUPÉRATION DES TEXTES FRANÇAIS
-    const getText = (value, fallback) => {
-      if (typeof value === "string")
-        return value;
+			DOWNLOAD: "⇩",
+			EDUCATION: "📚",
+			SOCIAL: "♡",
+			OTHER: "✦"
+		};
 
-      if (value && typeof value === "object")
-        return value.fr || value.en || value.vi || fallback;
+		// RÉCUPÉRATION DES TEXTES FRANÇAIS
+		const getText = (value, fallback) => {
+			if (typeof value === "string")
+				return value;
 
-      return fallback;
-    };
+			if (value && typeof value === "object")
+				return value.fr || value.en || value.vi || fallback;
 
-    // MENU PRINCIPAL
-    if (args.length === 0) {
-      const categories = {};
+			return fallback;
+		};
 
-      for (const [name, command] of visibleCommands) {
-        const category = (
-          command.config?.category || "OTHER"
-        ).toUpperCase();
+		// FILTRAGE DES COMMANDES SELON LES PERMISSIONS
+		const visibleCommands = [...commands.entries()]
+			.filter(([name, command]) => {
+				const config = command.config || {};
+				return (config.role ?? 0) <= role;
+			});
 
-        if (!categories[category])
-          categories[category] = [];
+		// MENU PRINCIPAL
+		if (args.length === 0) {
+			const categories = {};
 
-        categories[category].push(name);
-      }
+			for (const [name, command] of visibleCommands) {
+				const category = (
+					customCategories[name.toLowerCase()] ||
+					command.config?.category ||
+					"OTHER"
+				).toUpperCase();
 
-      const categoryNames = Object.keys(categories).sort(
-        (a, b) => {
-          const nameA = categoryTranslations[a] || a;
-          const nameB = categoryTranslations[b] || b;
+				if (!categories[category])
+					categories[category] = [];
 
-          return nameA.localeCompare(nameB, "fr");
-        }
-      );
+				categories[category].push(name);
+			}
 
-      let msg = "";
+			const categoryNames = Object.keys(categories).sort(
+				(a, b) => {
+					const nameA = categoryTranslations[a] || a;
+					const nameB = categoryTranslations[b] || b;
 
-      // EN-TÊTE
-      msg += "╭━━━『 🕷️ 𝗗𝗔𝗥𝗞 𝗦𝗬𝗦𝗧𝗘𝗠 』━━━╮\n";
-      msg += `│ ◈ Préfixe : ${prefix}\n`;
-      msg += `│ ◈ Commandes : ${visibleCommands.length}\n`;
-      msg += `│ ◈ Catégories : ${categoryNames.length}\n`;
-      msg += "╰━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+					return nameA.localeCompare(nameB, "fr");
+				}
+			);
 
-      // LISTE DES CATÉGORIES
-      for (const category of categoryNames) {
-        const names = categories[category].sort(
-          (a, b) => a.localeCompare(b, "fr")
-        );
+			let msg = "";
 
-        const icon = categoryIcons[category] || "✦";
-        const title = categoryTranslations[category] || category;
+			// EN-TÊTE
+			msg += "╭━━━『 🕷️ 𝗗𝗔𝗥𝗞 𝗦𝗬𝗦𝗧𝗘𝗠 』━━━╮\n";
+			msg += `│ ◈ Préfixe : ${prefix}\n`;
+			msg += `│ ◈ Commandes : ${visibleCommands.length}\n`;
+			msg += `│ ◈ Catégories : ${categoryNames.length}\n`;
+			msg += "╰━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
 
-        msg += `${icon} ${title} ${names.length}\n`;
-        msg += `╰─ ${names.join(" • ")}\n`;
-      }
+			// LISTE DES CATÉGORIES
+			for (const category of categoryNames) {
+				const names = categories[category].sort(
+					(a, b) => a.localeCompare(b, "fr")
+				);
 
-      // PIED DU MENU
-      msg += "✦ Pour découvrir une commande :\n";
-      msg += `${prefix}help [nom de la commande]\n`;
-      msg += "╰━━━『 𖤐 DARK NETWORK 𖤐 』━━━╯";
+				const icon = categoryIcons[category] || "✦";
+				const title = categoryTranslations[category] || category;
 
-      return message.reply({ body: msg });
-    }
+				msg += `${icon} 𝗗𝗔𝗥𝗞 ${title} [${names.length}]\n`;
+				msg += `╰─ ${names.join(" • ")}\n\n`;
+			}
 
-    // RECHERCHE D'UNE COMMANDE
-    const commandName = args[0].toLowerCase();
-    const aliasName = aliases.get(commandName);
+			// PIED DU MENU
+			msg += "╭━━━〔 ⚙️ UTILISATION 〕━━━╮\n";
+			msg += `│ ✧ ${prefix}help : afficher le menu\n`;
+			msg += `│ ✧ ${prefix}help nomCommande : détails\n`;
+			msg += "╰━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+			msg += "𖤐 𝗗𝗔𝗥𝗞 𝗡𝗘𝗧𝗪𝗢𝗥𝗞 𖤐";
 
-    const command =
-      commands.get(commandName) ||
-      (aliasName ? commands.get(aliasName) : null);
+			return message.reply({ body: msg });
+		}
 
-    if (!command) {
-      return message.reply(
-        "╭━━━〔 🕷️ ERREUR 〕━━━╮\n" +
-        "│ ✖ Commande introuvable.\n" +
-        "│ Vérifie le nom et réessaie.\n" +
-        "╰━━━━━━━━━━━━━━━━━━━━╯"
-      );
-    }
+		// RECHERCHE D'UNE COMMANDE
+		const commandName = args[0].toLowerCase();
+		const aliasName = aliases.get(commandName);
 
-    const config = command.config || {};
+		const command =
+			commands.get(commandName) ||
+			(aliasName ? commands.get(aliasName) : null);
 
-    // VÉRIFICATION DES PERMISSIONS
-    if ((config.role ?? 0) > role) {
-      return message.reply(
-        "⛔ ACCÈS REFUSÉ\n\n" +
-        "Tu n'as pas la permission d'utiliser cette commande."
-      );
-    }
+		if (!command) {
+			return message.reply(
+				"╭━━━〔 🕷️ ERREUR 〕━━━╮\n" +
+				"│ ✖ Commande introuvable.\n" +
+				"│ Vérifie le nom et réessaie.\n" +
+				"╰━━━━━━━━━━━━━━━━━━━━╯"
+			);
+		}
 
-    // DESCRIPTION ET GUIDE
-    const description = getText(
-      config.longDescription || config.shortDescription,
-      "Aucune description disponible."
-    );
+		const config = command.config || {};
 
-    const guide = getText(
-      config.guide,
-      "Aucune utilisation disponible."
-    );
+		// VÉRIFICATION DES PERMISSIONS
+		if ((config.role ?? 0) > role) {
+			return message.reply(
+				"⛔ ACCÈS REFUSÉ\n\n" +
+				"Tu n'as pas la permission d'utiliser cette commande."
+			);
+		}
 
-    const usage = guide
-      .replace(/{pn}/g, prefix + config.name)
-      .replace(/{p}/g, prefix)
-      .replace(/{n}/g, config.name);
+		// DESCRIPTION ET GUIDE
+		const description = getText(
+			config.longDescription || config.shortDescription,
+			"Aucune description disponible."
+		);
 
-    const aliasesList = config.aliases
-      ? Array.isArray(config.aliases)
-        ? config.aliases.join(" • ")
-        : config.aliases
-      : "Aucun";
+		const guide = getText(
+			config.guide,
+			"Aucune utilisation disponible."
+		);
 
-    const category = (
-      config.category || "OTHER"
-    ).toUpperCase();
+		const usage = guide
+			.replace(/{pn}/g, prefix + config.name)
+			.replace(/{p}/g, prefix)
+			.replace(/{n}/g, config.name);
 
-    const translatedCategory =
-      categoryTranslations[category] || category;
+		const aliasesList = config.aliases
+			? Array.isArray(config.aliases)
+				? config.aliases.join(" • ")
+				: config.aliases
+			: "Aucun";
 
-    // INFORMATIONS DE LA COMMANDE
-    const response =
-      "╭━━━『 🕷️ 𝗗𝗔𝗥𝗞 𝗦𝗬𝗦𝗧𝗘𝗠 』━━━╮\n" +
-      `│ ◈ Commande : ${config.name}\n` +
-      `│ ◈ Alias : ${aliasesList}\n` +
-      `│ ◈ Version : ${config.version || "1.0"}\n` +
-      `│ ◈ Catégorie : ${translatedCategory}\n` +
-      "├──────────────────────────\n" +
-      `│ ✧ Description : ${description}\n` +
-      `│ ✧ Auteur : ${config.author || "Inconnu"}\n` +
-      `│ ✧ Permission : ${roleTextToString(config.role ?? 0)}\n` +
-      `│ ✧ Temps d'attente : ${config.countDown || 1}s\n` +
-      "├──────────────────────────\n" +
-      "│ ⚙️ UTILISATION\n" +
-      `│ ${usage}\n` +
-      "╰━━━『 𖤐 DARK NETWORK 𖤐 』━━━╯";
+		const category = (
+			customCategories[config.name?.toLowerCase()] ||
+			config.category ||
+			"OTHER"
+		).toUpperCase();
 
-    return message.reply({ body: response });
-  }
+		const translatedCategory =
+			categoryTranslations[category] || category;
+
+		// INFORMATIONS DE LA COMMANDE
+		const response =
+			"╭━━━『 🕷️ 𝗗𝗔𝗥𝗞 𝗦𝗬𝗦𝗧𝗘𝗠 』━━━╮\n" +
+			`│ ◈ Commande : ${config.name}\n` +
+			`│ ◈ Alias : ${aliasesList}\n` +
+			`│ ◈ Version : ${config.version || "1.0"}\n` +
+			`│ ◈ Catégorie : ${translatedCategory}\n` +
+			"├──────────────────────────\n" +
+			`│ ✧ Description : ${description}\n` +
+			`│ ✧ Auteur : ${config.author || "Inconnu"}\n` +
+			`│ ✧ Permission : ${roleTextToString(config.role ?? 0)}\n` +
+			`│ ✧ Temps d'attente : ${config.countDown || 1}s\n` +
+			"├──────────────────────────\n" +
+			"│ ⚙️ UTILISATION\n" +
+			`│ ${usage}\n` +
+			"╰━━━『 𖤐 DARK NETWORK 𖤐 』━━━╯";
+
+		return message.reply({ body: response });
+	}
 };
 
 // TRADUCTION DES PERMISSIONS
 function roleTextToString(role) {
-  switch (role) {
-    case 0:
-      return "Tout le monde";
+	switch (role) {
+		case 0:
+			return "Tout le monde";
 
-    case 1:
-      return "Administrateurs du groupe";
+		case 1:
+			return "Administrateurs du groupe";
 
-    case 2:
-      return "Administrateurs du bot";
+		case 2:
+			return "Administrateurs du bot";
 
-    default:
-      return "Permission " + role;
-  }
+		default:
+			return "Permission " + role;
+	}
 }
-
