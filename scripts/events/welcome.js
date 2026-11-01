@@ -1,199 +1,480 @@
 
-const { getTime } = global.utils;
-const { createCanvas, loadImage, registerFont } = require("canvas");
+const Canvas = require("canvas");
+const { createCanvas, loadImage, registerFont } = Canvas;
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
 
-if (!global.temp.welcomeEvent) global.temp.welcomeEvent = {};
+let fontLoaded = false;
 
-// Chargement de la police
-(async () => {
+async function loadWelcomeFont() {
+  if (fontLoaded) return;
+
   try {
-    const fontPath = path.join(__dirname, "cache", "tt-modernoir-trial.bold.ttf");
+    const fontPath = path.join(
+      __dirname,
+      "cache",
+      "tt-modernoir-trial.bold.ttf"
+    );
 
-    if (!fs.existsSync(fontPath)) {
-      console.log("⏬ Téléchargement de la police...");
-      const fontUrl = "https://github.com/MR-MAHABUB-004/MAHABUB-BOT-STORAGE/raw/main/fronts/tt-modernoir-trial.bold.ttf";
-      const { data } = await axios.get(fontUrl, { responseType: "arraybuffer" });
-      await fs.outputFile(fontPath, data);
-      console.log("✅ Police téléchargée");
+    if (!await fs.pathExists(fontPath)) {
+      const fontUrl =
+        "https://github.com/MR-MAHABUB-004/MAHABUB-BOT-STORAGE/raw/main/fronts/tt-modernoir-trial.bold.ttf";
+
+      const response = await axios.get(fontUrl, {
+        responseType: "arraybuffer",
+        timeout: 15000
+      });
+
+      await fs.outputFile(fontPath, response.data);
     }
 
-    registerFont(fontPath, { family: "ModernoirBold" });
-    console.log("✅ Police enregistrée");
-  } catch (err) {
-    console.error("❌ Erreur de chargement de la police :", err);
+    registerFont(fontPath, {
+      family: "ModernoirBold"
+    });
+
+    fontLoaded = true;
+  } catch (error) {
+    console.error("Erreur police Modernoir :", error.message);
   }
-})();
+}
+
+function roundedRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - radius,
+    y + height
+  );
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(
+    x,
+    y + height,
+    x,
+    y + height - radius
+  );
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
+}
+
+function fitText(ctx, text, maxWidth, initialSize) {
+  let size = initialSize;
+
+  while (size > 15) {
+    ctx.font = `bold ${size}px ModernoirBold, Arial`;
+
+    if (ctx.measureText(text).width <= maxWidth)
+      break;
+
+    size -= 2;
+  }
+
+  return size;
+}
+
+function drawCorner(ctx, x, y, horizontal, vertical) {
+  ctx.save();
+  ctx.strokeStyle = "#c084fc";
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+  ctx.moveTo(x, y + vertical * 65);
+  ctx.lineTo(x, y);
+  ctx.lineTo(x + horizontal * 65, y);
+  ctx.stroke();
+
+  ctx.strokeStyle = "rgba(216, 180, 254, 0.55)";
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(x + horizontal * 12, y + vertical * 48);
+  ctx.lineTo(x + horizontal * 12, y + vertical * 12);
+  ctx.lineTo(x + horizontal * 48, y + vertical * 12);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+async function createWelcomeCard({
+  userID,
+  userName,
+  threadName,
+  memberCount,
+  usersData
+}) {
+  await loadWelcomeFont();
+
+  const width = 900;
+  const height = 1200;
+
+  const canvas = createCanvas(width, height);
+  const ctx = canvas.getContext("2d");
+
+  // Fond principal
+  const gradient = ctx.createLinearGradient(0, 0, width, height);
+  gradient.addColorStop(0, "#08060d");
+  gradient.addColorStop(0.45, "#21102f");
+  gradient.addColorStop(1, "#07050b");
+
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+
+  // Halo violet
+  const glow = ctx.createRadialGradient(
+    450, 440, 20,
+    450, 440, 520
+  );
+
+  glow.addColorStop(0, "rgba(147, 51, 234, 0.23)");
+  glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, width, height);
+
+  // Cadre extérieur
+  ctx.strokeStyle = "#8b5cf6";
+  ctx.lineWidth = 5;
+
+  roundedRect(ctx, 25, 25, width - 50, height - 50, 30);
+  ctx.stroke();
+
+  // Cadre intérieur
+  ctx.strokeStyle = "rgba(216, 180, 254, 0.45)";
+  ctx.lineWidth = 2;
+
+  roundedRect(ctx, 43, 43, width - 86, height - 86, 24);
+  ctx.stroke();
+
+  // Décoration des quatre coins
+  drawCorner(ctx, 55, 55, 1, 1);
+  drawCorner(ctx, 845, 55, -1, 1);
+  drawCorner(ctx, 55, 1145, 1, -1);
+  drawCorner(ctx, 845, 1145, -1, -1);
+
+  // Petites décorations
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#c084fc";
+  ctx.font = "bold 34px Arial";
+  ctx.fillText("𖤐", 450, 115);
+
+  // Titre
+  ctx.fillStyle = "#e9d5ff";
+  ctx.font = "bold 43px ModernoirBold, Arial";
+  ctx.fillText("NEW SOUL", 450, 185);
+
+  ctx.strokeStyle = "#8b5cf6";
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.moveTo(180, 215);
+  ctx.lineTo(720, 215);
+  ctx.stroke();
+
+  // Cadre de la photo
+  const avatarX = 450;
+  const avatarY = 440;
+  const avatarRadius = 190;
+
+  ctx.save();
+
+  ctx.shadowColor = "#a855f7";
+  ctx.shadowBlur = 35;
+
+  ctx.beginPath();
+  ctx.arc(
+    avatarX,
+    avatarY,
+    avatarRadius + 13,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fillStyle = "#a855f7";
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  ctx.beginPath();
+  ctx.arc(
+    avatarX,
+    avatarY,
+    avatarRadius + 5,
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fillStyle = "#0b0711";
+  ctx.fill();
+
+  // Chargement de la photo du joueur
+  try {
+    let avatarUrl;
+
+    if (usersData && usersData.getAvatarUrl)
+      avatarUrl = await usersData.getAvatarUrl(userID);
+
+    if (!avatarUrl)
+      throw new Error("Photo de profil indisponible");
+
+    const avatar = await loadImage(avatarUrl);
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(
+      avatarX,
+      avatarY,
+      avatarRadius,
+      0,
+      Math.PI * 2
+    );
+    ctx.clip();
+
+    const scale = Math.max(
+      (avatarRadius * 2) / avatar.width,
+      (avatarRadius * 2) / avatar.height
+    );
+
+    const drawWidth = avatar.width * scale;
+    const drawHeight = avatar.height * scale;
+
+    ctx.drawImage(
+      avatar,
+      avatarX - drawWidth / 2,
+      avatarY - drawHeight / 2,
+      drawWidth,
+      drawHeight
+    );
+
+    ctx.restore();
+
+  } catch (error) {
+    // Image de remplacement
+    ctx.beginPath();
+    ctx.arc(
+      avatarX,
+      avatarY,
+      avatarRadius,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.fillStyle = "#21102f";
+    ctx.fill();
+
+    const initial = String(userName || "?")
+      .trim()
+      .charAt(0)
+      .toUpperCase();
+
+    ctx.fillStyle = "#e9d5ff";
+    ctx.font = "bold 130px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(initial, avatarX, avatarY);
+
+    ctx.textBaseline = "alphabetic";
+  }
+
+  ctx.restore();
+
+  // Nom du joueur
+  ctx.textAlign = "center";
+
+  const safeName = String(userName || "Nouveau membre");
+  const nameSize = fitText(ctx, safeName, 740, 48);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `bold ${nameSize}px ModernoirBold, Arial`;
+
+  ctx.shadowColor = "#a855f7";
+  ctx.shadowBlur = 15;
+
+  ctx.fillText(safeName, 450, 730);
+
+  ctx.shadowBlur = 0;
+
+  // Petite décoration
+  ctx.fillStyle = "#c084fc";
+  ctx.font = "bold 28px Arial";
+  ctx.fillText("𓆩 🥀 𓆪", 450, 785);
+
+  // Nom du groupe
+  ctx.fillStyle = "#c4b5fd";
+  ctx.font = "bold 24px ModernoirBold, Arial";
+
+  ctx.fillText("WELCOME TO", 450, 855);
+
+  const safeGroup = String(threadName || "Groupe");
+  const groupSize = fitText(ctx, safeGroup, 720, 35);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = `bold ${groupSize}px ModernoirBold, Arial`;
+  ctx.fillText(safeGroup, 450, 905);
+
+  // Numéro du membre
+  ctx.strokeStyle = "rgba(192, 132, 252, 0.6)";
+  ctx.lineWidth = 2;
+
+  roundedRect(ctx, 250, 960, 400, 75, 18);
+  ctx.stroke();
+
+  ctx.fillStyle = "#e9d5ff";
+  ctx.font = "bold 27px ModernoirBold, Arial";
+
+  ctx.fillText(
+    `MEMBER N° ${memberCount}`,
+    450,
+    1007
+  );
+
+  // Signature
+  ctx.fillStyle = "#a78bfa";
+  ctx.font = "bold 23px ModernoirBold, Arial";
+  ctx.fillText("𖤐 DARK NETWORK 𖤐", 450, 1090);
+
+  ctx.fillStyle = "#c084fc";
+  ctx.font = "22px Arial";
+  ctx.fillText("WELCOME TO THE DARK SIDE", 450, 1125);
+
+  const stream = canvas.createPNGStream();
+  stream.path = `welcome_${userID}.png`;
+
+  return stream;
+}
 
 module.exports = {
   config: {
     name: "welcome",
-    version: "4.2",
+    version: "6.0",
     author: "Dark",
     category: "events"
   },
 
-  onStart: async ({ threadsData, message, event, api }) => {
+  onStart: async ({
+    threadsData,
+    message,
+    event,
+    api,
+    usersData
+  }) => {
     try {
-      const { threadID, logMessageType, logMessageData } = event;
+      const {
+        threadID,
+        logMessageType,
+        logMessageData
+      } = event;
+
+      if (logMessageType !== "log:subscribe")
+        return;
 
       const botID = api.getCurrentUserID();
-      const addedParticipants = logMessageData.addedParticipants || [];
 
-      // CAS 1 : Le bot rejoint un nouveau groupe
-      if (
-        logMessageType === "log:subscribe" &&
-        addedParticipants.some(p => p.userFbId === botID)
-      ) {
-        const nickname = global.GoatBot?.config?.nickNameBot || "Bot";
-        await api.changeNickname(nickname, threadID, botID);
+      const addedParticipants =
+        logMessageData.addedParticipants || [];
 
-        const msg = `
-𓆩 🖤 𓆪 ━━━━ 𖤐 ━━━━ 𓆩 🦇 𓆪
+      if (!addedParticipants.length)
+        return;
 
-𝗠𝖾𝗋𝖼𝗂 𝖽'𝖺𝗏𝗈𝗂𝗋 𝗂𝗇𝗏𝗂𝗍𝖾́ 𝗆𝗈𝗇 𝗌𝗒𝗌𝗍𝖾̀𝗆𝖾. 🥀
+      // CAS 1 : Le bot est ajouté au groupe
+      const botAdded = addedParticipants.some(
+        participant => participant.userFbId == botID
+      );
 
-♛ 𝗡𝗼𝗺 𝗱𝘂 𝗯𝗼𝘁 : ヾΩ.Ꭰꪖꪹӄ 命༘
-♛ 𝗣𝗿𝗲́𝗳𝗶𝘅𝗲 : 『 $ 』
-♛ 𝗠𝗲𝗻𝘂 : 『 $help 』
+      if (botAdded) {
+        const nickname =
+          global.GoatBot?.config?.nickNameBot || "DARK SYSTEM";
 
-⚜️ 𝗠𝗼𝗱𝗲 : 𝗦𝘆𝘀𝘁𝗲̀𝗺𝗲 𝗗𝗮𝗿𝗸
-🩸 𝗦𝘁𝗮𝘁𝘂𝘁 : 𝗘𝗻 𝗹𝗶𝗴𝗻𝗲
+        const configuredPrefix =
+          global.GoatBot?.config?.prefix || "-";
 
-༺ 𝑳𝒆 𝒔𝒊𝒍𝒆𝒏𝒄𝒆 𝒆𝒔𝒕 𝒖𝒏𝒆 𝒇𝒐𝒓𝒄𝒆. ༻
+        const prefix = Array.isArray(configuredPrefix)
+          ? configuredPrefix[0]
+          : configuredPrefix;
 
-𓆩 ⚜️ 𓆪 ━━━━━━━━━ 𓆩 ⚜️ 𓆪
-        `;
+        try {
+          await api.changeNickname(nickname, threadID, botID);
+        } catch (error) {
+          console.error("Erreur changement de pseudo :", error);
+        }
 
-        await api.sendMessage(msg, threadID);
+        const botMessage =
+`𓆩 ⚜️ 𓆪 DARK SYSTEM
+
+Connexion établie.
+
+♛ Bot : ${nickname}
+♛ Préfixe : ${prefix}
+♛ Menu : ${prefix}help
+♛ Statut : En ligne
+
+Le système est opérationnel. 🦇`;
+
+        await api.sendMessage(botMessage, threadID);
         return;
       }
 
-      // CAS 2 : Un membre rejoint le groupe
-      if (logMessageType !== "log:subscribe") return;
-
+      // CAS 2 : Nouveaux membres
       const threadData = await threadsData.get(threadID);
       const threadName = threadData.threadName || "Groupe";
-      const memberCount = (await api.getThreadInfo(threadID)).participantIDs.length;
 
-      const user = addedParticipants[0];
-      if (!user) return;
+      const threadInfo = await api.getThreadInfo(threadID);
 
-      const userName = user.fullName;
-      const userID = user.userFbId;
+      const newMembers = addedParticipants.filter(
+        participant => participant.userFbId != botID
+      );
 
-      // Photo de profil
-      const avatarUrl = `https://graph.facebook.com/${userID}/picture?height=720&width=720&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+      // Le nombre de membres inclut déjà les personnes ajoutées.
+      let memberCount =
+        threadInfo.participantIDs.length - newMembers.length + 1;
 
-      // Fonds aléatoires
-      const backgrounds = [
-        "https://files.catbox.moe/cj68oa.jpg",
-        "https://files.catbox.moe/0n8mmb.jpg",
-        "https://files.catbox.moe/hvynlb.jpg",
-        "https://files.catbox.moe/leyeuq.jpg",
-        "https://files.catbox.moe/7ufcfb.jpg",
-        "https://files.catbox.moe/y78bmv.jpg"
-      ];
+      for (const user of newMembers) {
+        const userID = user.userFbId;
 
-      const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+        if (!userID)
+          continue;
 
-      // Création du Canvas
-      const canvas = createCanvas(1000, 500);
-      const ctx = canvas.getContext("2d");
+        let userName = user.fullName || "Nouveau membre";
 
-      const bgResponse = await axios.get(randomBg, {
-        responseType: "arraybuffer"
-      });
+        try {
+          if (usersData && usersData.getName)
+            userName = await usersData.getName(userID) || userName;
+        } catch (error) {
+          console.error("Erreur récupération du nom :", error);
+        }
 
-      const bg = await loadImage(bgResponse.data);
-      ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+        try {
+          const card = await createWelcomeCard({
+            userID,
+            userName,
+            threadName,
+            memberCount,
+            usersData
+          });
 
-      // Chargement de l'avatar
-      let avatar;
+          await message.send({
+            attachment: card
+          });
 
-      try {
-        const response = await axios.get(avatarUrl, {
-          responseType: "arraybuffer"
-        });
-        avatar = await loadImage(response.data);
-      } catch {
-        avatar = await loadImage("https://i.ibb.co/2kR9xgQ/default-avatar.png");
+        } catch (error) {
+          console.error("Erreur création de la carte :", error);
+
+          await message.send(
+            `𓆩 🦇 𓆪 Bienvenue ${userName} dans ${threadName} ! 🥀`
+          );
+        }
+
+        memberCount++;
       }
 
-      // Avatar circulaire
-      const avatarSize = 200;
-      const avatarX = canvas.width / 2 - avatarSize / 2;
-      const avatarY = 40;
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(
-        canvas.width / 2,
-        avatarY + avatarSize / 2,
-        avatarSize / 2,
-        0,
-        Math.PI * 2
-      );
-      ctx.closePath();
-      ctx.clip();
-      ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
-      ctx.restore();
-
-      // Textes sur l'image
-      ctx.textAlign = "center";
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = 6;
-
-      ctx.font = "bold 55px ModernoirBold";
-      ctx.fillStyle = "#ffffff";
-      ctx.fillText(userName, canvas.width / 2, 310);
-
-      ctx.font = "bold 35px ModernoirBold";
-      ctx.fillStyle = "#ffea00";
-      ctx.fillText(threadName.toUpperCase(), canvas.width / 2, 370);
-
-      ctx.font = "bold 30px ModernoirBold";
-      ctx.fillStyle = "#00ffcc";
-      ctx.fillText(
-        `Tu es notre ${memberCount}e membre !`,
-        canvas.width / 2,
-        420
-      );
-
-      // Enregistrement de l'image
-      const imgPath = path.join(__dirname, "cache", `welcome_${userID}.png`);
-      await fs.ensureDir(path.dirname(imgPath));
-
-      const out = fs.createWriteStream(imgPath);
-      const stream = canvas.createPNGStream();
-
-      stream.pipe(out);
-
-      await new Promise((resolve, reject) => {
-        out.on("finish", resolve);
-        out.on("error", reject);
-        stream.on("error", reject);
-      });
-
-      // Message de bienvenue en français
-      await message.send(
-        {
-          body:
-            `𓆩 🖤 𓆪 Bienvenue ${userName} dans ${threadName} ! 🥀\n\n` +
-            `⚜️ Tu es notre ${memberCount}e membre ! 🎉\n` +
-            `Nous te souhaitons de passer de bons moments parmi nous. 🦇`,
-          attachment: fs.createReadStream(imgPath)
-        },
-        () => {
-          if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
-        }
-      );
-
-    } catch (err) {
-      console.error("❌ Erreur de bienvenue :", err);
+    } catch (error) {
+      console.error("Erreur dans welcome.js :", error);
     }
   }
 };
-      
